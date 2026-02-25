@@ -148,13 +148,14 @@ COMPUTED
   }
 
   async function handlePrintBill() {
-    // Print the selected bill
     const selectOrderId = posStore.orderId
-    // TODO print recipe here
-    // if (res.status == 200) {
-    //   await orderStore.fetchAllOrders()
-    //   window.open(res.data.invoice_url, '_blank')
-    // }
+    const res = await orderStore.printBillForPayment(selectOrderId)
+    if (res.status == 200) {
+      window.open(res.data.invoice_url, '_blank')
+    }
+
+    await orderStore.fetchAllOrders()
+    await posStore.clearBill()
   }
 
   async function handleLogout() {

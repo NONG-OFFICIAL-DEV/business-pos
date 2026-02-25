@@ -26,6 +26,10 @@ export const useOrderStore = defineStore('order', {
       this.orders = data
       return data
     },
+     async printBillForPayment(orderId) {
+      const res = await orderService.printBillForPayment(orderId)
+      return res
+    },
 
     // ✅ Start listening to Reverb
     subscribeToOrders() {
