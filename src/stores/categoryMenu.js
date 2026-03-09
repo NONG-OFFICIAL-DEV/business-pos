@@ -7,11 +7,10 @@ export const useCategoryMenuStore = defineStore('categoryMenu', () => {
 
   async function fetchAllMenuCategory(loading) {
     const { data } = await categoryMenuService.getAll(loading)
-    items.value = data.data || []
+    items.value = data.data.data || []
   }
   return {
     items,
-
     fetchAllMenuCategory
   }
 })

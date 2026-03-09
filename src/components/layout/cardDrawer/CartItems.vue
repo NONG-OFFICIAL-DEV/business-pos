@@ -41,17 +41,18 @@
   >
     <div class="pa-2 d-flex align-center">
       <v-avatar size="48" rounded="md" class="bg-grey-lighten-4 border">
-        <v-img :src="item.image_url" cover />
+        <v-img v-if="item.product?.image_url" :src="item.product.image_url" cover />
+        <v-img v-else :src="item.image_url" cover />
       </v-avatar>
 
       <div class="ml-3 flex-grow-1">
         <div class="d-flex justify-space-between">
           <span class="font-weight-bold text-truncate">
-            {{ item.menu_name || item.name }}
+            {{ item.product_name }}
           </span>
 
           <span class="font-weight-black text-primary">
-            {{ formatCurrency(item.price * item.qty) }}
+            {{ formatCurrency(item.unit_price * item.quantity) }}
           </span>
         </div>
 
@@ -73,13 +74,13 @@
         <!-- Qty -->
         <div class="d-flex justify-space-between align-center mt-2">
           <span class="text-caption text-grey">
-            {{ formatCurrency(item.price) }}
+            {{ formatCurrency(item.unit_price) }}
           </span>
 
           <!-- Editable qty ONLY for cart -->
           <QtyStepper
             v-if="item.editable !== false"
-            :modelValue="item.qty"
+            :modelValue="item.quantity"
             :min="0"
             :max="100"
             small
@@ -90,7 +91,7 @@
           <!-- Read-only qty (bill) -->
           <div v-else>
             <span class="px-2 font-weight-bold text-caption">
-              × {{ item.qty }}
+              × {{ item.quantity }}
             </span>
           </div>
         </div>

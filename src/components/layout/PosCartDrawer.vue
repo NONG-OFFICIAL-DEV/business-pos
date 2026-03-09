@@ -28,12 +28,12 @@ const displayItems = computed(() => {
 // - Bill mode:   a real bill must be selected (has order_no)
 const isFooterDisabled = computed(() => {
   if (posStore.isPrintBill) {
-    return !selectedBill.value?.order_no
+    return !selectedBill.value?.order_number
   }
   return !cartItems.value.length
 })
 
-const updateQty      = (itemId, qty) => posStore.updateQty(itemId, qty)
+const updateQty      = (itemId, quantity) => posStore.updateQty(itemId, quantity)
 const clearCart      = ()            => posStore.clearCart()
 const clearBill      = ()            => posStore.clearBill()
 const selectPayment  = method        => posStore.setPaymentMethod(method)

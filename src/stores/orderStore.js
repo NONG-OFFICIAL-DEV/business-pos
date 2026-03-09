@@ -22,9 +22,10 @@ export const useOrderStore = defineStore('order', {
     },
 
     async fetchAllOrders() {
-      const { data } = await orderService.getAllOrder()
-      this.orders = data
-      return data
+      const res = await orderService.getAllOrder()
+      // console.log(data.data.data);
+      
+      this.orders = res.data.data
     },
      async printBillForPayment(orderId) {
       const res = await orderService.printBillForPayment(orderId)

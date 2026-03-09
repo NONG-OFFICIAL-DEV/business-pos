@@ -62,10 +62,10 @@ COMPUTED
   function handleQuickAdd(product) {
     handleAddProductToCart({
       id: product.id,
-      name: product.name,
-      price: product.price,
+      product_name: product.name,
+      unit_price: product.base_price,
       image_url: product.image_url,
-      qty: 1,
+      quantity: 1,
       customizations: {}
     })
   }
@@ -78,10 +78,11 @@ COMPUTED
   function buildHospitalityPayload() {
     return {
       table_id: posStore.selectedTable?.id || 1,
+      branch_id: 'f66891c7-969f-4402-9212-a6cc519f7988',
       items: activeItems.value.map(i => ({
-        menu_id: i.id,
-        quantity: i.qty,
-        price: i.price,
+        product_id: i.id,
+        quantity: i.quantity,
+        price: i.base_price,
         note: ''
       }))
     }
@@ -92,7 +93,7 @@ COMPUTED
       items: activeItems.value.map(i => ({
         menu_id: i.id,
         quantity: i.qty,
-        price: i.price,
+        price: i.base_price,
         customizations: i.customizations || null, // size, milk, sugar etc.
         note: ''
       })),
@@ -131,7 +132,8 @@ COMPUTED
       return
     }
 
-    const type = posStore.selectedStore?.type
+    const type = 'hospitality'
+    // posStore.selectedStore?.type
     const handler = checkoutHandlers[type]
 
     if (!handler) {

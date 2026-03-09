@@ -25,7 +25,7 @@
   defineEmits(['clear', 'clearBill'])
 
   // ✅ Check order_no exists — guards against empty object {}
-  const hasBill = computed(() => !!props.itemInformations?.order_no)
+  const hasBill = computed(() => !!props.itemInformations?.order_number)
 </script>
 
 <template>
@@ -75,7 +75,7 @@
         <div class="text-subtitle-2 font-weight-black">
           {{
             isHospitality
-              ? `Order #${itemInformations.order_no}`
+              ? `Order #${itemInformations.order_number}`
               : 'Current Order'
           }}
         </div>
@@ -101,7 +101,7 @@
           class="font-weight-bold"
         >
           <v-icon start icon="mdi-pound" size="14" />
-          {{ itemInformations.order_id }}
+           T-{{ itemInformations.dining_table?.table_number }}
         </v-chip>
         <v-chip
           size="small"

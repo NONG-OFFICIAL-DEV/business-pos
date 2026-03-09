@@ -31,16 +31,18 @@
   // ─────────────────────────────────────────────
   // COMPUTED
   // ─────────────────────────────────────────────
-  const orders = computed(() => orderStore.orders || [])
+  const orders = computed(() => orderStore.orders.data || [])
   const selectedBill = computed(() => posStore.selectedBill)
 
-  const filteredOrders = computed(() => {
+  const filteredOrders = computed( () => {
     let list = [...orders.value]
 
     if (filterType.value === 'table') {
-      list = list.filter(o => o.table)
+      list = list.filter(o => o.order_type)
+      console.log(list);
+      
     } else if (filterType.value === 'takeaway') {
-      list = list.filter(o => !o.table)
+      list = list.filter(o => !o.order_type)
     }
 
     return list.sort((a, b) => {
@@ -83,7 +85,7 @@
     connection.bind('disconnected', () => (connected.value = false))
   })
 
-  onUnmounted(() => {
+  onUnmounted(() => {    
     orderStore.unsubscribeFromOrders()
   })
 </script>
@@ -192,8 +194,8 @@
         <v-card
           :class="[
             'order-card rounded-xl',
-            selectedBill?.order_id === bill.order_id && 'selected-bill',
-            newOrderIds.has(bill.order_id) && 'new-order-flash'
+            selectedBill?.order_number === bill.order_number && 'selected-bill',
+            newOrderIds.has(bill.order_number) && 'new-order-flash'
           ]"
           elevation="0"
           border
@@ -241,7 +243,7 @@
               class="d-flex align-center text-caption text-grey-darken-1 mb-3"
             >
               <v-icon size="13" class="me-1">mdi-package-variant</v-icon>
-              {{ bill.item_count || 0 }} items
+              {{ bill.items.length || 0 }} items
             </div>
 
             <v-divider class="mb-3" style="border-style: dashed" />
@@ -250,7 +252,7 @@
               <div>
                 <div class="text-caption text-grey mb-0">Total</div>
                 <div class="text-h5 font-weight-black text-primary">
-                  {{ formatCurrency(bill.total) }}
+                  {{ formatCurrency(bill.total_amount) }}
                 </div>
               </div>
               <v-btn

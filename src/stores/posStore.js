@@ -24,7 +24,7 @@ export const usePosStore = defineStore(
       { id: 'card', icon: 'mdi-credit-card-outline', label: 'Card' }
     ]
 
-    const selectedStore = ref(stores[3])
+    const selectedStore = ref(stores[2])
     const selectedTable = ref(null)
 
     const selectedBill = ref([])
@@ -39,7 +39,7 @@ export const usePosStore = defineStore(
     )
 
     const subtotal = computed(() =>
-      activeItems.value.reduce((sum, i) => sum + i.price * i.qty, 0)
+      activeItems.value.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
     )
 
     const total = computed(() => subtotal.value)
@@ -81,7 +81,7 @@ export const usePosStore = defineStore(
       )
 
       if (existing) {
-        existing.qty += item.qty
+        existing.quantity += item.quantity
       } else {
         cart.value.push({ ...item })
       }
@@ -91,8 +91,8 @@ export const usePosStore = defineStore(
       const item = cart.value.find(i => i.id === itemId)
       if (!item) return
 
-      item.qty = qty
-      if (item.qty <= 0) removeFromCart(itemId)
+      item.quantity = qty
+      if (item.quantity <= 0) removeFromCart(itemId)
     }
 
     function removeFromCart(itemId) {

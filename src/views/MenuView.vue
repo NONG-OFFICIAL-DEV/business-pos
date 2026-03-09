@@ -31,7 +31,7 @@
   )
 
   const filteredProducts = computed(() => {
-    let list = menuStore.menus || []
+    let list = menuStore.products || []
 
     // Filter by category
     if (selectedCategory.value !== 'All') {
@@ -70,6 +70,7 @@
   onMounted(async () => {
     await Promise.all([
       menuStore.fetchMenus(),
+      menuStore.getProducts(),
       menuCategoryStore.fetchAllMenuCategory()
     ])
   })
@@ -268,8 +269,8 @@
               <span class="text-subtitle-1 font-weight-black text-primary">
                 ${{
                   product.has_variants
-                    ? product.variants?.[0]?.price
-                    : product.price
+                    ? product.variants?.[0]?.base_price
+                    : product.base_price
                 }}
               </span>
 
