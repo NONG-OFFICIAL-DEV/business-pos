@@ -49,7 +49,7 @@
       if (success) {
         console.log(success);
         if(success.data.bu_type === 'restaurant') {
-          router.push('/dining-table-view')
+          router.push('/pos/dining-table-view')
         } else {
           router.push('/pos/menu-list')
         }
