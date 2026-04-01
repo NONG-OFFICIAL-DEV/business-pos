@@ -8,4 +8,9 @@ export const categoryMenuService = {
       meta: { loader: loading }
     })
   },
+  getCategories(filters) {
+    return http.get('/v1/mart/pos/categories', {
+      params: filters
+    })
+  }
 }

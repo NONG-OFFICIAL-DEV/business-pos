@@ -72,16 +72,7 @@
          inset
          class="mx-4 d-none d-sm-block"
        />
-   
-       <div class="d-lg-flex align-center mr-6">
-         <v-badge dot color="success" offset-x="3" offset-y="3">
-           <v-icon icon="mdi-wifi" size="small" color="grey" />
-         </v-badge>
-         <span class="text-caption font-weight-bold text-grey ml-2">ONLINE</span>
-       </div>
-   
-       <v-divider vertical inset class="mx-4 d-none d-sm-block" />
-   
+      
        <div class="user-pill d-flex align-center pa-1 pr-3 ml-2">
          <v-avatar size="36" class="elevation-2">
            <v-img

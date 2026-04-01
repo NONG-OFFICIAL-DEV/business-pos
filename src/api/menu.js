@@ -8,9 +8,9 @@ export const menuService = {
       meta: { loader: 'skeleton' }
     })
   },
-  fetchProducts() {
-    return http.get('/v1/products', {
-      meta: { loader: 'skeleton' }
+  fetchProducts(params) {
+    return http.get('/v1/mart/pos/products', {
+      params
     })
-  },
+  }
 }

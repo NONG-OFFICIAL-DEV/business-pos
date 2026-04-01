@@ -1,6 +1,16 @@
 <template>
   <v-navigation-drawer rail permanent>
     <v-list>
+      <div class="logo-box ms-2">
+        <v-icon icon="mdi-lightning-bolt" color="white" size="24" />
+      </div>
+      <!-- <v-list-item
+        prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
+        subtitle="sandra_a88@gmailcom"
+        title="Sandra Adams"
+      ></v-list-item> -->
+    </v-list>
+    <v-list>
       <v-tooltip
         v-for="item in menuItems"
         :key="item.value"
@@ -20,6 +30,24 @@
     </v-list>
     <template v-slot:append>
       <v-list>
+        <v-menu location="end">
+          <template v-slot:activator="{ props }">
+            <v-list-item prepend-icon="mdi-account" v-bind="props" />
+          </template>
+
+          <v-list width="200" rounded="lg" class="mt-2">
+            <v-list-item prepend-icon="mdi-history" title="Shift History" />
+            <v-divider class="my-2" />
+            <v-list-item
+              prepend-icon="mdi-logout"
+              title="Logout"
+              color="error"
+              class="text-error"
+              @click="handleLogout"
+            />
+          </v-list>
+        </v-menu>
+
         <v-menu
           v-model="menu"
           :close-on-content-click="false"
@@ -27,7 +55,7 @@
           offset="15"
         >
           <template v-slot:activator="{ props: menuProps }">
-            <v-tooltip text="Settings" location="right">
+            <v-tooltip text="Account" location="right">
               <template v-slot:activator="{ props: tooltipProps }">
                 <v-list-item
                   v-bind="mergeProps(menuProps, tooltipProps)"
@@ -95,8 +123,14 @@
 
   const menu = ref(false)
   defineProps({
-    orderCount: { type: Number, default: 0 }
+    orderCount: { type: Number, default: 0 },
+    user: Object
   })
+  const emit = defineEmits(['logout'])
+
+  function handleLogout() {
+    emit('logout')
+  }
 
   const menuItems = computed(() => {
     const items = [
@@ -121,13 +155,13 @@
         to: '/pos/kds',
         feature: true
       },
-      // {
-      //   tooltip: 'Orders',
-      //   icon: 'mdi-cash-register',
-      //   value: 'Cashier',
-      //   to: '/pos/cashier',
-      //   feature: false
-      // }
+      {
+        tooltip: 'Orders',
+        icon: 'mdi-cash-register',
+        value: 'Cashier',
+        to: '/pos/cashier',
+        feature: false
+      }
     ]
 
     // Only hospitality stores
@@ -172,3 +206,15 @@
   //   }
   // ]
 </script>
+<style scoped>
+  .logo-box {
+    background: #1867c0;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(24, 103, 192, 0.3);
+  }
+</style>

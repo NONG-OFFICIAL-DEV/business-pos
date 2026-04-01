@@ -34,13 +34,12 @@
   const orders = computed(() => orderStore.orders.data || [])
   const selectedBill = computed(() => posStore.selectedBill)
 
-  const filteredOrders = computed( () => {
+  const filteredOrders = computed(() => {
     let list = [...orders.value]
 
     if (filterType.value === 'table') {
       list = list.filter(o => o.order_type)
-      console.log(list);
-      
+      console.log(list)
     } else if (filterType.value === 'takeaway') {
       list = list.filter(o => !o.order_type)
     }
@@ -85,7 +84,7 @@
     connection.bind('disconnected', () => (connected.value = false))
   })
 
-  onUnmounted(() => {    
+  onUnmounted(() => {
     orderStore.unsubscribeFromOrders()
   })
 </script>
@@ -100,10 +99,9 @@
           <v-btn
             variant="tonal"
             color="primary"
-            size="small"
-            prepend-icon="mdi-arrow-left"
+            size="x-small"
+            icon="mdi-arrow-left"
             class="text-none"
-            rounded="lg"
             text="Back"
             @click="$router.go(-1)"
           />
@@ -111,13 +109,29 @@
             <div class="text-subtitle-1 font-weight-black text-slate-800 lh-1">
               Unpaid Orders
             </div>
-            <div class="text-caption text-grey">
-              {{ orders.length }} active orders
-            </div>
           </div>
         </div>
 
         <div class="d-flex align-center gap-2">
+          <div class="text-caption text-grey">
+            {{ orders.length }} active orders
+          </div>
+          <!-- Filter Tabs -->
+          <div class="d-flex gap-2">
+            <v-btn
+              v-for="tab in filterTabs"
+              :key="tab.key"
+              :color="filterType === tab.key ? 'primary' : undefined"
+              :variant="filterType === tab.key ? 'flat' : 'tonal'"
+              size="x-small"
+              rounded="lg"
+              class="text-none"
+              :prepend-icon="tab.icon"
+              @click="filterType = tab.key"
+            >
+              {{ tab.label }}
+            </v-btn>
+          </div>
           <v-btn
             variant="tonal"
             size="x-small"
@@ -143,22 +157,6 @@
             {{ connected ? 'Live' : 'Reconnecting…' }}
           </v-chip>
         </div>
-      </div>
-      <!-- Filter Tabs -->
-      <div class="d-flex gap-2 mb-1">
-        <v-btn
-          v-for="tab in filterTabs"
-          :key="tab.key"
-          :color="filterType === tab.key ? 'primary' : undefined"
-          :variant="filterType === tab.key ? 'flat' : 'tonal'"
-          size="x-small"
-          rounded="lg"
-          class="text-none"
-          :prepend-icon="tab.icon"
-          @click="filterType = tab.key"
-        >
-          {{ tab.label }}
-        </v-btn>
       </div>
     </div>
 
@@ -277,7 +275,6 @@
     z-index: 5;
     background: rgba(248, 250, 252, 0.9) !important;
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid #e2e8f0;
     margin-bottom: 10px;
   }
 

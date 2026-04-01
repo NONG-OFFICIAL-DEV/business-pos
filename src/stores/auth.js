@@ -6,8 +6,16 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     me: {},
     unread_notifications_count: 0,
-    token: localStorage.getItem('token') || null
+    token: localStorage.getItem('token') || null,
+    branch_id: null,
+    bu_type: null
   }),
+  getters: {
+    isRestaurant: state => state.bu_type === 'restaurant',
+    isRetail: state => state.bu_type === 'retail',
+    isWarehouse: state => state.bu_type === 'warehouse'
+    // add whatever bu_type values your backend returns
+  },
   actions: {
     //how to use it see in file Login.vue
     async login({ email, password }) {
@@ -31,6 +39,8 @@ export const useAuthStore = defineStore('auth', {
     async fetchMe() {
       const res = await authService.me().catch(() => {})
       this.me = res.data.user
+      this.branch_id = res.data.branch_id ?? null
+      this.bu_type = res.data.bu_type ?? null
       this.unread_notifications_count = res.data.unread_notifications_count
     }
   }

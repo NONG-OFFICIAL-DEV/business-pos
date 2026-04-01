@@ -2,14 +2,11 @@
   import { ref, computed, onMounted } from 'vue'
   import { useMenuStore } from '@/stores/menuStore'
   import { useCategoryMenuStore } from '@/stores/categoryMenu'
-  import { usePosStore } from '@/stores/posStore'
-  const posStore = usePosStore()
-  const isCoffeeStore = computed(
-    () => posStore.selectedStore?.type === 'coffee'
-  )
-  const isRestaurant = computed(
-    () => posStore.selectedStore?.type === 'hospitality'
-  )
+  import { useAuthStore } from '@/stores/auth'
+  import { useBuType } from '@/composables/useBuType'
+  const { isRestaurant, isCoffeeStore } = useBuType()
+
+  const authStore = useAuthStore()
 
   const props = defineProps({
     search: {
@@ -69,9 +66,9 @@
   // ─────────────────────────────────────────────────────────────────────────────
   onMounted(async () => {
     await Promise.all([
+      menuStore.getProducts({ branch_id: authStore.branch_id }),
       menuStore.fetchMenus(),
-      menuStore.getProducts(),
-      menuCategoryStore.fetchAllMenuCategory()
+      menuCategoryStore.fetchMenuCategories({ branch_id: authStore.branch_id })
     ])
   })
 </script>
@@ -85,17 +82,11 @@
           <v-btn
             variant="tonal"
             color="primary"
-            size="small"
-            prepend-icon="mdi-arrow-left"
-            rounded="lg"
+            size="x-small"
+            icon="mdi-arrow-left"
             class="text-none"
             @click="$router.push('/pos/dining-table-view')"
-          >
-            Back
-          </v-btn>
-
-          <v-icon size="16" color="grey-lighten-1">mdi-chevron-right</v-icon>
-
+          ></v-btn>
           <span class="text-subtitle-2 font-weight-bold text-slate-800">
             Menu
           </span>
@@ -115,63 +106,62 @@
           {{ filteredProducts.length }} ITEMS
         </v-chip>
       </div>
-
-      <div class="mb-4">
-        <!-- Loading skeletons — only while fetching -->
-        <div v-if="isLoading" class="d-flex gap-2">
-          <v-skeleton-loader
-            v-for="n in 6"
-            :key="n"
-            type="chip"
-            width="80"
-            class="rounded-xl"
-          />
-        </div>
-
-        <!-- Actual category tabs -->
-        <v-slide-group
-          v-else
-          v-model="selectedCategory"
-          mandatory
-          show-arrows
-          class="category-slider"
-        >
-          <!-- All -->
-          <v-slide-group-item v-slot="{ isSelected, toggle }" value="All">
-            <v-btn
-              :color="isSelected ? 'primary' : 'grey-lighten-3'"
-              :variant="isSelected ? 'flat' : 'flat'"
-              class="me-2 text-none"
-              rounded="xl"
-              size="small"
-              prepend-icon="mdi-view-grid"
-              @click="toggle"
-            >
-              All
-            </v-btn>
-          </v-slide-group-item>
-
-          <!-- Dynamic categories -->
-          <v-slide-group-item
-            v-for="cat in menuCategoryStore.items"
-            :key="cat.id"
-            :value="cat.id"
-            v-slot="{ isSelected, toggle }"
-          >
-            <v-btn
-              :color="isSelected ? 'primary' : 'grey-lighten-3'"
-              :variant="isSelected ? 'flat' : 'flat'"
-              class="me-2 text-none"
-              rounded="xl"
-              size="small"
-              prepend-icon="mdi-food-croissant"
-              @click="toggle"
-            >
-              {{ cat.name }}
-            </v-btn>
-          </v-slide-group-item>
-        </v-slide-group>
+    </div>
+    <div class="mb-4">
+      <!-- Loading skeletons — only while fetching -->
+      <div v-if="isLoading" class="d-flex gap-2">
+        <v-skeleton-loader
+          v-for="n in 6"
+          :key="n"
+          type="chip"
+          width="80"
+          class="rounded-xl"
+        />
       </div>
+
+      <!-- Actual category tabs -->
+      <v-slide-group
+        v-else
+        v-model="selectedCategory"
+        mandatory
+        show-arrows
+        class="category-slider"
+      >
+        <!-- All -->
+        <v-slide-group-item v-slot="{ isSelected, toggle }" value="All">
+          <v-btn
+            :color="isSelected ? 'primary' : 'grey-lighten-3'"
+            :variant="isSelected ? 'flat' : 'flat'"
+            class="me-2 text-none"
+            rounded="xl"
+            size="small"
+            prepend-icon="mdi-view-grid"
+            @click="toggle"
+          >
+            All
+          </v-btn>
+        </v-slide-group-item>
+
+        <!-- Dynamic categories -->
+        <v-slide-group-item
+          v-for="cat in menuCategoryStore.categories"
+          :key="cat.id"
+          :value="cat.id"
+          v-slot="{ isSelected, toggle }"
+        >
+          <v-btn
+            :color="isSelected ? 'primary' : 'grey-lighten-3'"
+            :variant="isSelected ? 'flat' : 'flat'"
+            class="me-2 text-none"
+            rounded="xl"
+            size="small"
+            :prepend-icon="cat.icon"
+            @click="toggle"
+          >
+            {{ cat.name }}
+          </v-btn>
+        </v-slide-group-item>
+      </v-slide-group>
     </div>
 
     <!-- Loading state -->
@@ -345,9 +335,7 @@
     position: sticky;
     top: 0px;
     z-index: 5;
-    background: rgba(248, 250, 252, 0.9) !important;
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid #e2e8f0;
     margin-bottom: 10px;
   }
 </style>

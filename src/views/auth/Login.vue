@@ -4,58 +4,108 @@
   import { useAuthStore } from '@/stores/auth'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useI18n } from 'vue-i18n'
+
   const { t } = useI18n()
   const { notif } = useAppUtils()
-  const email = ref('')
-  const password = ref('')
   const store = useAuthStore()
   const router = useRouter()
-  const errors = reactive({
-    email: '',
-    password: '',
-    general: ''
-  })
+
+  const email = ref('')
+  const password = ref('')
   const visible = ref(false)
   const loading = ref(false)
+  const generalError = ref('')
+  const form = ref(null) // v-form ref
+
+  // ── Validation Rules ───────────────────────────────────────────
+  const emailRules = [
+    v => !!v || 'Email is required',
+    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Enter a valid email address',
+    v => v.length <= 255 || 'Email is too long'
+  ]
+
+  const passwordRules = [
+    v => !!v || 'Password is required',
+    v => v.length >= 6 || 'Password must be at least 6 characters',
+    v => v.length <= 128 || 'Password is too long'
+  ]
+
+  // ── Submit ─────────────────────────────────────────────────────
   const login = async () => {
+    generalError.value = ''
+
+    // Run Vuetify form validation first
+    const { valid } = await form.value.validate()
+    if (!valid) return
+
     loading.value = true
-    // clear previous errors
-    errors.email = ''
-    errors.password = ''
-    errors.general = ''
 
     try {
       const success = await store.login({
-        email: email.value,
+        email: email.value.trim(),
         password: password.value
       })
 
       if (success) {
-        router.push('/pos')
-
-        notif(t('messages.loginSucess'), {
-          type: 'success',
-          color: 'primary'
-        })
+        console.log(success);
+        if(success.bu_type === 'restaurant') {
+          router.push('/pos')
+        } else {
+          router.push('/pos/menu-list')
+        }
+        notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
       }
     } catch (err) {
       const res = err.response?.data
+
       if (res?.status === 'validation_error') {
-        errors.email = res.errors.email?.join(', ')
-        errors.password = res.errors.password?.join(', ')
+        // Push server errors into Vuetify fields via error-messages
+        if (res.errors?.email) {
+          form.value.items.find(i => i.id?.includes('email'))?.reset?.()
+          emailServerError.value = res.errors.email.join(', ')
+        }
+        if (res.errors?.password) {
+          passwordServerError.value = res.errors.password.join(', ')
+        }
       }
-      if (res?.status == 'invalid_credentials') {
-        // console.log(res.status == 'invalid_credentials')
-        errors.general = res.message
+
+      if (res?.status === 'invalid_credentials') {
+        generalError.value = res.message || 'Invalid email or password.'
       }
+
+      if (!res) {
+        generalError.value = 'Network error. Please try again.'
+      }
+    } finally {
+      loading.value = false
     }
   }
+
+  // Server-side error strings (appended to field rules)
+  const emailServerError = ref('')
+  const passwordServerError = ref('')
+
+  // Clear server errors when user starts typing again
+  const onEmailInput = () => {
+    emailServerError.value = ''
+    generalError.value = ''
+  }
+  const onPasswordInput = () => {
+    passwordServerError.value = ''
+    generalError.value = ''
+  }
+
+  const fullEmailRules = [...emailRules, () => emailServerError.value || true]
+  const fullPasswordRules = [
+    ...passwordRules,
+    () => passwordServerError.value || true
+  ]
 </script>
 
 <template>
   <v-container fluid class="login-page d-flex align-center justify-center pa-0">
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-1" />
+    <div class="bg-shape shape-2" />
 
     <v-card
       class="glass-card pa-10"
@@ -63,6 +113,7 @@
       max-width="450"
       border="1px solid rgba(255,255,255,0.3)"
     >
+      <!-- Logo & Title -->
       <div class="text-center mb-10">
         <div class="logo-wrapper mb-4">
           <v-icon icon="mdi-lightning-bolt" color="amber-darken-2" size="40" />
@@ -75,20 +126,25 @@
         </p>
       </div>
 
-      <v-form @submit.prevent="login" class="fade-in">
+      <!-- Form -->
+      <v-form ref="form" @submit.prevent="login" validate-on="blur">
+        <!-- Email -->
         <v-text-field
           v-model="email"
           label="Email"
           variant="outlined"
           rounded="lg"
           prepend-inner-icon="mdi-email-outline"
-          class="mb-4"
+          class="mb-3"
           density="comfortable"
-          :error="!!errors.email"
-          :error-messages="errors.email"
+          type="email"
+          autocomplete="email"
+          :rules="fullEmailRules"
+          @input="onEmailInput"
           required
         />
 
+        <!-- Password -->
         <v-text-field
           v-model="password"
           label="Password"
@@ -98,20 +154,30 @@
           :type="visible ? 'text' : 'password'"
           prepend-inner-icon="mdi-lock-outline"
           density="comfortable"
-          :error="!!errors.password"
-          :error-messages="errors.password"
-          required
+          autocomplete="current-password"
+          :rules="fullPasswordRules"
+          @input="onPasswordInput"
           @click:append-inner="visible = !visible"
+          required
         />
-        <v-alert
-          type="error"
-          density="compact"
-          v-if="errors.general"
-          class="text-red mt-2"
-        >
-          {{ errors.general }}
-        </v-alert>
 
+        <!-- General / credentials error -->
+        <v-expand-transition>
+          <v-alert
+            v-if="generalError"
+            type="error"
+            density="compact"
+            variant="tonal"
+            rounded="lg"
+            class="mt-2"
+            closable
+            @click:close="generalError = ''"
+          >
+            {{ generalError }}
+          </v-alert>
+        </v-expand-transition>
+
+        <!-- Submit -->
         <v-btn
           type="submit"
           block
@@ -119,6 +185,7 @@
           elevation="0"
           class="login-gradient-btn mt-8 text-none text-subtitle-1 font-weight-bold bg-primary"
           :loading="loading"
+          :disabled="loading"
         >
           Authorize Access
           <v-icon icon="mdi-arrow-right" end class="ml-2" />
@@ -129,7 +196,6 @@
 </template>
 
 <style scoped>
-  /* 1. Background Styling */
   .login-page {
     height: 100vh;
     background-color: #f8fafc;
@@ -160,7 +226,6 @@
     left: -50px;
   }
 
-  /* 2. Glassmorphism Card */
   .glass-card {
     background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(20px);
@@ -169,19 +234,10 @@
     z-index: 1;
   }
 
-  /* 3. Typography & Inputs */
   .tracking-tight {
     letter-spacing: -0.05em;
   }
 
-  .custom-label {
-    display: block;
-    color: #64748b;
-    margin-bottom: 6px;
-    margin-left: 4px;
-  }
-
-  /* 4. The Button */
   .login-gradient-btn {
     color: white !important;
     border-radius: 12px !important;
@@ -190,14 +246,6 @@
 
   .login-gradient-btn:hover {
     transform: scale(1.02);
-  }
-
-  /* 5. Error Toast */
-  .error-toast {
-    background: #fef2f2;
-    color: #dc2626;
-    border-left: 4px solid #dc2626;
-    border-radius: 8px;
   }
 
   .logo-wrapper {

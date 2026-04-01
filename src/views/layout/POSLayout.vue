@@ -177,7 +177,6 @@ ON MOUNT
     try {
       await orderStore.fetchAllOrders()
       orderStore.subscribeToOrders()
-      await authStore.fetchMe()
       user.value = authStore.me
     } catch {
       await authStore.logout()

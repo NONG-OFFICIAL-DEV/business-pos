@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 export const usePosStore = defineStore(
   'pos',
@@ -13,9 +14,8 @@ export const usePosStore = defineStore(
     const orderId = ref(null)
 
     const stores = [
-      { id: 1, name: 'Mart', type: 'retail' },
-      { id: 2, name: 'Coffee Shop', type: 'coffee' },
-      { id: 3, name: 'Restaurant', type: 'hospitality' }
+      { id: 1, name: 'Coffee Shop', type: 'coffee' },
+      { id: 2, name: 'Restaurant', type: 'hospitality' }
     ]
 
     const paymentMethods = [
@@ -24,7 +24,7 @@ export const usePosStore = defineStore(
       { id: 'card', icon: 'mdi-credit-card-outline', label: 'Card' }
     ]
 
-    const selectedStore = ref(stores[2])
+    const selectedStore = ref(stores[1])
     const selectedTable = ref(null)
 
     const selectedBill = ref([])
@@ -57,7 +57,13 @@ export const usePosStore = defineStore(
     function selectTable(table) {
       selectedTable.value = table
     }
+    const router = useRouter()
 
+    function clearTable() {
+      router.push('/pos/menu-list')
+      selectedTable.value = null
+      clearCart()
+    }
     function selectBill(bill) {
       isPrintBill.value = true
       selectedBill.value = bill
@@ -128,6 +134,7 @@ export const usePosStore = defineStore(
       /** actions */
       selectStore,
       selectTable,
+      clearTable,
       selectBill,
       addToCart,
       updateQty,
