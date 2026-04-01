@@ -8,6 +8,9 @@ export const useAuthStore = defineStore('auth', {
     unread_notifications_count: 0,
     token: localStorage.getItem('token') || null,
     branch_id: null,
+    branch_id: null,
+    branch_name: null,
+    roleName: null,
     bu_type: null
   }),
   getters: {
@@ -40,7 +43,9 @@ export const useAuthStore = defineStore('auth', {
       const res = await authService.me().catch(() => {})
       this.me = res.data.user
       this.branch_id = res.data.branch_id ?? null
+      this.branch_name = res.data.branch_name ?? null
       this.bu_type = res.data.bu_type ?? null
+      this.roleName = res.data.role_name ?? null
       this.unread_notifications_count = res.data.unread_notifications_count
     }
   }

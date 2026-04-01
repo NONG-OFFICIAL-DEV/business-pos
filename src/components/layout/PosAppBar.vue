@@ -2,6 +2,8 @@
   defineProps({
     search: String,
     user: Object,
+    roleName: String,
+    branchName: String,
     content: [String, Number],
     isCoffeeStore: Boolean
   })
@@ -30,7 +32,7 @@
           <span class="text-primary">POS</span>
         </span>
         <span class="text-caption text-grey-darken-1 font-weight-bold mt-n1">
-          STATION 01
+          STATION 01 <v-chip size="x-small">{{ branchName }} Branch</v-chip>
         </span>
       </div>
     </div>
@@ -83,9 +85,9 @@
    
          <div class="ml-3 d-none d-md-block text-start" style="line-height: 1.2">
            <div class="text-subtitle-2 font-weight-black text-slate-900">
-             {{ user?.username || 'Operator' }}
+             {{ user?.full_name || 'Operator' }}
            </div>
-           <div class="text-caption text-primary font-weight-bold">Admin Mode</div>
+           <div class="text-caption text-primary font-weight-bold">{{ roleName }}</div>
          </div>
    
          <v-menu location="bottom end" transition="slide-y-transition">

@@ -17,6 +17,8 @@
 
   /* COMPOSABLES */
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { useBuType } from '@/composables/useBuType'
+  const { isRestaurant, isCoffeeStore } = useBuType()
 
   /* -------------------------
 STORES / UTILITIES
@@ -26,12 +28,6 @@ STORES / UTILITIES
   const orderStore = useOrderStore()
   const authStore = useAuthStore()
   const { isAdmin, isManager } = usePermission()
-  const isCoffeeStore = computed(
-    () => posStore.selectedStore?.type === 'coffee'
-  )
-  const isRestaurant = computed(
-    () => posStore.selectedStore?.type === 'hospitality'
-  )
 
   const router = useRouter()
   const { t } = useI18n()
@@ -77,8 +73,8 @@ COMPUTED
 
   function buildHospitalityPayload() {
     return {
-      table_id: posStore.selectedTable?.id || 1,
-      branch_id: 'f66891c7-969f-4402-9212-a6cc519f7988',
+      table_id: isCoffeeStore ? null : posStore.selectedTable?.id || null,
+      branch_id: authStore.branch_id,
       items: activeItems.value.map(i => ({
         product_id: i.id,
         quantity: i.quantity,
@@ -176,16 +172,11 @@ ON MOUNT
   onMounted(async () => {
     try {
       await orderStore.fetchAllOrders()
-      orderStore.subscribeToOrders()
       user.value = authStore.me
     } catch {
       await authStore.logout()
       router.push({ name: 'Login' })
     }
-  })
-
-  onUnmounted(() => {
-    orderStore.unsubscribeFromOrders() // 👈 clean up
   })
 </script>
 
@@ -194,12 +185,13 @@ ON MOUNT
   <PosAppBar
     v-model:search="search"
     :user="user"
+    :roleName="authStore.roleName"
+    :branchName="authStore.branch_name"
     :content="orderStore.unpaidCount"
     :is-coffee-store="isCoffeeStore"
     @logout="handleLogout"
     @orders="goToOrders"
   />
-
   <!-- SIDEBAR MENU (Hospitality only) -->
   <SidebarMenu v-if="isAdmin" />
 
@@ -222,6 +214,7 @@ ON MOUNT
           <transition name="slide-fade" mode="out-in">
             <component
               :is="Component"
+              v-if="Component"
               @quick-add="handleQuickAdd"
               @select="openCustomizer"
             />
