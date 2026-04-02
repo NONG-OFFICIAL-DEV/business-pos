@@ -66,7 +66,7 @@
       name: selectedVariant.value
         ? `${props.product.name}`
         : props.product.name,
-      price: currentItemPrice.value, // Send the specific price for this variant
+      unit_price: currentItemPrice.value, // Send the specific price for this variant
       qty: quantity.value,
       customizations: {
         variant_name: selectedVariant.value?.name || 'Standard',
@@ -125,7 +125,7 @@
           </v-btn>
         </v-btn-toggle>
 
-        <template v-if="product?.has_variants">
+        <template v-if="product?.variants?.length > 0">
           <label class="text-subtitle-2 font-weight-bold d-block mb-2">
             Select Size
           </label>
@@ -148,7 +148,7 @@
                 <span class="text-subtitle-2">{{ v.name }}</span>
                 <v-spacer />
                 <span class="text-subtitle-2 font-weight-black">
-                  ${{ v.price }}
+                  ${{ v.price_adjustment }}
                 </span>
               </div>
             </v-card>

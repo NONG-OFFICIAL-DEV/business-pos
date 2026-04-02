@@ -54,7 +54,7 @@
   const emit = defineEmits(['select', 'quick-add'])
 
   function handleProductClick(product) {
-    if (!product.has_variants) {
+    if (!product.variants) {
       emit('quick-add', product)
     } else {
       emit('select', product)
@@ -230,7 +230,7 @@
 
             <!-- "OPTIONS" badge for variants -->
             <v-chip
-              v-if="product.has_variants"
+              v-if="product.variants?.length > 0"
               size="x-small"
               color="white"
               variant="flat"
