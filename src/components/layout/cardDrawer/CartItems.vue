@@ -85,7 +85,7 @@
             :max="100"
             small
             strict
-            @update:modelValue="val => $emit('update-qty', item.id, val)"
+            @update:modelValue="val => $emit('update-qty', item.cartKey, val)"
           />
 
           <!-- Read-only qty (bill) -->

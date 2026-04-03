@@ -75,34 +75,32 @@ export const usePosStore = defineStore(
       selectedBill.value = null
       isPrintBill.value = false
     }
+    
     function addToCart(item) {
       isPrintBill.value = false
       selectedBill.value = []
 
-      const existing = cart.value.find(
-        i =>
-          i.id === item.id &&
-          JSON.stringify(i.customizations || {}) ===
-            JSON.stringify(item.customizations || {})
-      )
+      const cartKey = `${item.id}_${JSON.stringify(item.customizations || {})}`
+
+      const existing = cart.value.find(i => i.cartKey === cartKey)
 
       if (existing) {
         existing.quantity += item.quantity
       } else {
-        cart.value.push({ ...item })
+        cart.value.push({ ...item, cartKey })
       }
     }
 
-    function updateQty(itemId, qty) {
-      const item = cart.value.find(i => i.id === itemId)
+    function updateQty(cartKey, qty) {
+      const item = cart.value.find(i => i.cartKey === cartKey)
       if (!item) return
 
       item.quantity = qty
-      if (item.quantity <= 0) removeFromCart(itemId)
+      if (item.quantity <= 0) removeFromCart(cartKey)
     }
 
-    function removeFromCart(itemId) {
-      cart.value = cart.value.filter(i => i.id !== itemId)
+    function removeFromCart(cartKey) {
+      cart.value = cart.value.filter(i => i.cartKey !== cartKey)
     }
 
     function clearCart() {
