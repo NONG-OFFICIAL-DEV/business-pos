@@ -29,7 +29,6 @@
 
         // Default to the first variant (usually "Small" or the cheapest)
         if (
-          props.product?.has_variants &&
           props.product?.variants?.length > 0
         ) {
           selectedVariant.value = props.product.variants[0]
@@ -43,10 +42,10 @@
   // --- Calculations ---
   const currentItemPrice = computed(() => {
     // If it has variants, use the variant price. Otherwise, use base product price.
-    if (props.product?.has_variants && selectedVariant.value) {
-      return parseFloat(selectedVariant.value.price)
+    if (props.product?.variants.length >0 && selectedVariant.value) {
+      return parseFloat(selectedVariant.value.price_adjustment)
     }
-    return parseFloat(props.product?.price || 0)
+    return parseFloat(props.product?.base_price || 0)
   })
 
   const totalPrice = computed(() => {
@@ -59,21 +58,26 @@
   }
 
   function submitOrder() {
+    const price =
+      currentItemPrice.value ||
+      selectedVariant.value?.price ||
+      parseFloat(props.product.base_price) ||
+      0
+
     const orderData = {
-      ...props.product,
-      // If variant selected, we use variant details
+      id: props.product.id,
+      product_name: props.product.name,
+      image_url: props.product.image_url,
+      unit_price: price,
+      quantity: quantity.value,
       variant_id: selectedVariant.value?.id || null,
-      name: selectedVariant.value
-        ? `${props.product.name}`
-        : props.product.name,
-      unit_price: currentItemPrice.value, // Send the specific price for this variant
-      qty: quantity.value,
       customizations: {
         variant_name: selectedVariant.value?.name || 'Standard',
         sugar: selectedSugar.value,
         orderType: orderType.value
       }
     }
+
     emit('add-to-cart', orderData)
     close()
   }

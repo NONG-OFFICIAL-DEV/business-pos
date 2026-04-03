@@ -54,7 +54,7 @@
   const emit = defineEmits(['select', 'quick-add'])
 
   function handleProductClick(product) {
-    if (!product.variants) {
+    if (!product.variants.length > 0) {
       emit('quick-add', product)
     } else {
       emit('select', product)
