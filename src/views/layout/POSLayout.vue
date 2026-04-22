@@ -14,6 +14,7 @@
   import PosCartDrawer from '@/components/layout/PosCartDrawer.vue'
   import OrderCustomizationDialog from '@/components/OrderCustomizationDialog.vue'
   import QRPaymentDialog from '@/components/QRPaymentDialog.vue'
+  import CashPaymentDialog from '@/components/CashPaymentDialog.vue'
 
   /* COMPOSABLES */
   import { useAppUtils } from '@/composables/useAppUtils'
@@ -41,6 +42,7 @@ LOCAL STATE
   const showCustomizeDialog = ref(false)
   const showQRDialog = ref(false)
   const user = ref(null)
+  const cashDialog = ref(false)
 
   /* -------------------------
 COMPUTED
@@ -71,78 +73,88 @@ COMPUTED
     showCustomizeDialog.value = true
   }
 
-  function buildHospitalityPayload() {
-    return {
-      table_id: isCoffeeStore ? null : posStore.selectedTable?.id || null,
-      branch_id: authStore.branch_id,
-      items: activeItems.value.map(i => ({
-        product_id: i.id,
-        quantity: i.quantity,
-        price: i.base_price,
-        note: ''
-      }))
-    }
-  }
-
-  function buildCoffeePayload() {
-    return {
-      items: activeItems.value.map(i => ({
-        menu_id: i.id,
-        quantity: i.qty,
-        price: i.base_price,
-        customizations: i.customizations || null, // size, milk, sugar etc.
-        note: ''
-      })),
-      total_amount: total.value,
-      payment_method: posStore.paymentMethod
-    }
-  }
-
-  async function checkoutHospitality() {
-    await orderStore.createOrder(buildHospitalityPayload(), 'overlay')
-    await menuStore.fetchMenus()
-  }
-
-  async function checkoutCoffee() {
-    await orderStore.createOrder(buildCoffeePayload(), 'overlay')
-  }
-
-  // ─── type → handler map ────────────────────────────────────────
-  const checkoutHandlers = {
-    hospitality: checkoutHospitality,
-    coffee: checkoutCoffee
-  }
-
-  // ─── post-checkout side effects ────────────────────────────────
-  async function afterCheckout() {
-    if (posStore.paymentMethod === 'qr') {
-      showQRDialog.value = true
-    }
-    posStore.clearCart()
-  }
-
-  // ─── main orchestrator ─────────────────────────────────────────
+  // In PosCartDrawer, emit cash details up on checkout
+  // ─── Step 1: Checkout button clicked ──────────────────────────
   async function handleCheckout() {
     if (!activeItems.value.length) {
       notif('Cart is empty!', { type: 'warning' })
       return
     }
 
-    const type = 'hospitality'
-    // posStore.selectedStore?.type
-    const handler = checkoutHandlers[type]
-
-    if (!handler) {
-      notif(`Unknown store type: "${type}"`, { type: 'error' })
+    // For cash: show dialog FIRST, order created after confirmation
+    if (posStore.paymentMethod === 'cash') {
+      cashDialog.value = true
       return
     }
 
+    // For QR and others: create order immediately
+    await submitOrder()
+  }
+
+  // ─── Step 2: Build payload by store type ──────────────────────
+  function buildPayload(extra = {}) {
+    const type = posStore.selectedStore?.type
+
+    if (type === 'coffee') {
+      return {
+        cash_tendered: extra.cash_tendered ?? 0,
+        change_given: extra.change_given ?? 0,
+        items: activeItems.value.map(i => ({
+          menu_id: i.id,
+          quantity: i.quantity,
+          price: i.unit_price,
+          customizations: i.customizations || null,
+          note: ''
+        })),
+        total_amount: total.value,
+        payment_method: posStore.paymentMethod
+      }
+    }
+
+    // default: hospitality
+    return {
+      cash_tendered: extra.cash_tendered ?? 0,
+      change_given: extra.change_given ?? 0,
+      table_id: isCoffeeStore.value ? null : posStore.selectedTable?.id || null,
+      branch_id: authStore.branch_id,
+      payment_method: posStore.paymentMethod,
+      items: activeItems.value.map(i => ({
+        product_id: i.id,
+        quantity: i.quantity,
+        price: i.unit_price,
+        note: ''
+      }))
+    }
+  }
+
+  // ─── Step 3: Actually create the order ────────────────────────
+  async function submitOrder(extra = {}) {
+    const type = posStore.selectedStore?.type
+
     try {
-      await handler()
-      await afterCheckout()
+      await orderStore.createOrder(buildPayload(extra))
+
+      if (type === 'hospitality') {
+        await menuStore.fetchMenus()
+      }
+
+      if (posStore.paymentMethod === 'qr') {
+        showQRDialog.value = true
+      }
+
+      posStore.clearCart()
     } catch {
       notif('Checkout failed. Please try again.', { type: 'error' })
     }
+  }
+
+  // ─── Step 4: Cash confirmed → now create order ────────────────
+  const confirmCashPayment = async ({ cash_received, change }) => {
+    cashDialog.value = false
+    await submitOrder({
+      cash_tendered: cash_received,
+      change_given: change
+    })
   }
 
   async function handlePrintBill() {
@@ -208,7 +220,7 @@ ON MOUNT
 
   <!-- MAIN VIEW -->
   <v-main>
-    <v-container class="px-4" fluid>
+    <v-container class="pa-0" fluid>
       <div class="main-content-wrapper w-100">
         <router-view v-slot="{ Component }">
           <transition name="slide-fade" mode="out-in">
@@ -230,7 +242,12 @@ ON MOUNT
     :product="selectedProduct"
     @add-to-cart="handleAddProductToCart"
   />
-
+  <CashPaymentDialog
+    v-model="cashDialog"
+    :total="total"
+    @confirm="confirmCashPayment"
+    @cancel="cashDialog = false"
+  />
   <QRPaymentDialog v-model="showQRDialog" :total="total" />
 </template>
 <style scoped>

@@ -20,9 +20,6 @@
 
   const selectedCategory = ref('All')
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // COMPUTED
-  // ─────────────────────────────────────────────────────────────────────────────
   const isLoading = computed(
     () => menuStore.loading || menuCategoryStore.loading
   )
@@ -30,7 +27,6 @@
   const filteredProducts = computed(() => {
     let list = menuStore.products || []
 
-    // Filter by category
     if (selectedCategory.value !== 'All') {
       list = list.filter(
         p =>
@@ -39,7 +35,6 @@
       )
     }
 
-    // Filter by search (driven by parent prop)
     if (props.search) {
       const q = props.search.toLowerCase()
       list = list.filter(p => p.name?.toLowerCase().includes(q))
@@ -48,22 +43,16 @@
     return list
   })
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // EMITS
-  // ─────────────────────────────────────────────────────────────────────────────
   const emit = defineEmits(['select', 'quick-add'])
 
   function handleProductClick(product) {
-    if (!product.variants.length > 0) {
+    if (!product.variants?.length) {
       emit('quick-add', product)
     } else {
       emit('select', product)
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FETCH
-  // ─────────────────────────────────────────────────────────────────────────────
   onMounted(async () => {
     await Promise.all([
       menuStore.getProducts({ branch_id: authStore.branch_id }),
@@ -74,160 +63,115 @@
 </script>
 
 <template>
-  <v-container fluid class="pos-menu-view pa-0">
+  <v-container fluid class="pos-menu-view pa-4">
     <div class="sticky-header">
-      <div class="d-flex align-center justify-space-between mb-3">
-        <div class="d-flex align-center gap-2" v-if="!isCoffeeStore">
-          <!-- Back to floor plan -->
-          <v-btn
-            variant="tonal"
-            color="primary"
-            size="x-small"
-            icon="mdi-arrow-left"
-            class="text-none"
-            @click="$router.push('/pos/dining-table-view')"
-          ></v-btn>
-          <span class="text-subtitle-2 font-weight-bold text-slate-800">
-            Menu
-          </span>
+      <div class="category-wrap pb-4">
+        <div v-if="isLoading" class="d-flex gap-3 overflow-hidden">
+          <v-skeleton-loader
+            v-for="n in 6"
+            :key="n"
+            type="button"
+            width="90"
+            class="rounded-pill"
+          />
         </div>
-        <div class="d-flex align-center gap-2" v-else>
-          <span class="text-subtitle-2 font-weight-bold text-slate-800">
-            Menu
-          </span>
-        </div>
-        <!-- Item count -->
-        <v-chip
-          size="x-small"
-          variant="flat"
-          color="grey-lighten-4"
-          class="font-weight-bold text-grey-darken-2"
+
+        <v-slide-group
+          v-else
+          v-model="selectedCategory"
+          mandatory
+          show-arrows
+          class="category-slider"
         >
-          {{ filteredProducts.length }} ITEMS
-        </v-chip>
+          <v-slide-group-item v-slot="{ isSelected, toggle }" value="All">
+            <button
+              :class="['cat-pill', { active: isSelected }]"
+              @click="toggle"
+            >
+              <v-icon size="16">mdi-apps</v-icon>
+              <span>All Items</span>
+            </button>
+          </v-slide-group-item>
+
+          <v-slide-group-item
+            v-for="cat in menuCategoryStore.categories"
+            :key="cat.id"
+            :value="cat.id"
+            v-slot="{ isSelected, toggle }"
+          >
+            <button
+              :class="['cat-pill', { active: isSelected }]"
+              @click="toggle"
+            >
+              <v-icon v-if="cat.icon" size="16">{{ cat.icon }}</v-icon>
+              <span>{{ cat.name }}</span>
+            </button>
+          </v-slide-group-item>
+        </v-slide-group>
       </div>
     </div>
-    <div class="mb-4">
-      <!-- Loading skeletons — only while fetching -->
-      <div v-if="isLoading" class="d-flex gap-2">
-        <v-skeleton-loader
-          v-for="n in 6"
-          :key="n"
-          type="chip"
-          width="80"
-          class="rounded-xl"
-        />
-      </div>
 
-      <!-- Actual category tabs -->
-      <v-slide-group
-        v-else
-        v-model="selectedCategory"
-        mandatory
-        show-arrows
-        class="category-slider"
-      >
-        <!-- All -->
-        <v-slide-group-item v-slot="{ isSelected, toggle }" value="All">
-          <v-btn
-            :color="isSelected ? 'primary' : 'grey-lighten-3'"
-            :variant="isSelected ? 'flat' : 'flat'"
-            class="me-2 text-none"
-            rounded="xl"
-            size="small"
-            prepend-icon="mdi-view-grid"
-            @click="toggle"
-          >
-            All
-          </v-btn>
-        </v-slide-group-item>
-
-        <!-- Dynamic categories -->
-        <v-slide-group-item
-          v-for="cat in menuCategoryStore.categories"
-          :key="cat.id"
-          :value="cat.id"
-          v-slot="{ isSelected, toggle }"
-        >
-          <v-btn
-            :color="isSelected ? 'primary' : 'grey-lighten-3'"
-            :variant="isSelected ? 'flat' : 'flat'"
-            class="me-2 text-none"
-            rounded="xl"
-            size="small"
-            :prepend-icon="cat.icon"
-            @click="toggle"
-          >
-            {{ cat.name }}
-          </v-btn>
-        </v-slide-group-item>
-      </v-slide-group>
-    </div>
-
-    <!-- Loading state -->
     <v-row v-if="isLoading" dense>
-      <v-col v-for="n in 8" :key="n" cols="12" sm="6" md="4" lg="3">
-        <v-skeleton-loader type="card" rounded="xl" />
+      <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3">
+        <v-skeleton-loader type="image, article" class="rounded-xl" />
       </v-col>
     </v-row>
 
-    <!-- Empty state — no results after filter/search -->
-    <div
-      v-else-if="filteredProducts.length === 0"
-      class="d-flex flex-column align-center justify-center pa-16 text-grey"
-    >
-      <v-icon size="64" class="mb-4" color="grey-lighten-2">
-        mdi-food-off
-      </v-icon>
-      <div class="text-subtitle-1 font-weight-bold mb-1">No items found</div>
-      <div class="text-caption text-grey">
-        Try a different category or clear your search
-      </div>
+    <div v-else-if="filteredProducts.length === 0" class="empty-state">
+      <v-avatar color="brown-lighten-5" size="80" class="mb-4">
+        <v-icon size="40" color="brown-lighten-2">
+          mdi-coffee-off-outline
+        </v-icon>
+      </v-avatar>
+      <h3 class="empty-title">No matches found</h3>
+      <p class="empty-sub">
+        We couldn't find anything matching your selection.
+      </p>
       <v-btn
-        v-if="selectedCategory !== 'All' || props.search"
-        variant="tonal"
-        color="primary"
-        size="small"
-        class="mt-4 text-none"
+        v-if="selectedCategory !== 'All'"
+        variant="flat"
+        color="brown-darken-2"
+        rounded="pill"
+        class="mt-4"
         @click="selectedCategory = 'All'"
       >
-        Clear filters
+        Clear Filter
       </v-btn>
     </div>
 
-    <!-- Products -->
-    <v-row v-else dense>
+    <v-row v-else dense class="product-grid">
       <v-col
         v-for="product in filteredProducts"
         :key="product.id"
-        cols="12"
-        sm="6"
+        cols="6"
+        sm="4"
         md="3"
         lg="3"
       >
         <v-card
+          :ripple="product.is_available !== false"
           flat
-          class="product-card rounded-xl overflow-hidden"
-          @click="handleProductClick(product)"
+          :class="[
+            'product-card',
+            { 'is-unavailable': product.is_available === false }
+          ]"
+          @click="product.is_available !== false && handleProductClick(product)"
         >
-          <!-- Image -->
-          <div class="position-relative">
-            <v-img
-              :src="product.image_url"
-              height="150"
-              cover
-              class="bg-grey-lighten-2"
-            >
-              <!-- Fallback icon when no image -->
+          <div class="img-container">
+            <v-img :src="product.image_url" cover class="product-img">
+              <template #placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular indeterminate color="brown-lighten-4" />
+                </v-row>
+              </template>
               <template #error>
-                <div
-                  class="d-flex align-center justify-center fill-height bg-grey-lighten-3"
-                >
-                  <v-icon size="40" color="grey-lighten-1">mdi-food</v-icon>
+                <div class="img-fallback">
+                  <v-icon size="32" color="brown-lighten-3">
+                    mdi-coffee-outline
+                  </v-icon>
                 </div>
               </template>
             </v-img>
-
             <!-- "OPTIONS" badge for variants -->
             <v-chip
               v-if="product.variants?.length > 0"
@@ -239,103 +183,231 @@
               <v-icon icon="mdi-tune" size="10" class="mr-1" />
               OPTIONS
             </v-chip>
-
-            <!-- "SOLD OUT" overlay -->
-            <div v-if="product.is_available === false" class="sold-out-overlay">
-              <span class="text-caption font-weight-black text-white">
+            <div v-if="product.is_available === false" class="status-overlay">
+              <v-chip
+                color="black"
+                size="small"
+                variant="flat"
+                class="font-weight-bold"
+              >
                 SOLD OUT
-              </span>
+              </v-chip>
+            </div>
+
+            <div v-else-if="product.has_variants" class="variant-chip">
+              <v-icon size="10" class="mr-1">mdi-tune</v-icon>
+              CUSTOMIZABLE
             </div>
           </div>
 
-          <!-- Info -->
-          <v-card-text class="pa-3">
-            <div
-              class="text-body-2 font-weight-bold text-truncate mb-1 text-slate-900"
-            >
-              {{ product.name }}
-            </div>
-            <div class="d-flex align-center justify-space-between">
-              <span class="text-subtitle-1 font-weight-black text-primary">
-                ${{
-                  product.has_variants
-                    ? product.variants?.[0]?.base_price
-                    : product.base_price
-                }}
-              </span>
+          <v-card-item class="pa-3">
+            <div class="product-name">{{ product.name }}</div>
+
+            <div class="d-flex align-center justify-space-between mt-2">
+              <div class="price-stack">
+                <span
+                  v-if="product.has_variants"
+                  class="text-caption text-grey"
+                >
+                  From
+                </span>
+                <span class="price-text">
+                  ${{
+                    product.has_variants
+                      ? product.variants?.[0]?.base_price
+                      : product.base_price
+                  }}
+                </span>
+              </div>
 
               <v-btn
-                :color="product.is_available === false ? 'grey' : 'primary'"
+                :color="
+                  product.has_variants ? 'brown-darken-3' : 'brown-lighten-5'
+                "
+                :class="{
+                  'text-white': product.has_variants,
+                  'text-brown-darken-3': !product.has_variants
+                }"
+                size="32"
+                flat
+                icon
+                rounded="lg"
                 :disabled="product.is_available === false"
-                :icon="product.has_variants ? 'mdi-tune' : 'mdi-plus'"
-                size="x-small"
-                elevation="0"
-                variant="tonal"
-                class="add-btn"
-              />
+              >
+                <v-icon size="18">
+                  {{
+                    product.has_variants ? 'mdi-dots-horizontal' : 'mdi-plus'
+                  }}
+                </v-icon>
+              </v-btn>
             </div>
-          </v-card-text>
+          </v-card-item>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
 </template>
-
+<style>
+  .v-slide-group__content {
+    padding-top: 12px;
+  }
+</style>
 <style scoped>
   .pos-menu-view {
-    position: relative;
+    background: #fdfbf9;
+    min-height: 100vh;
   }
-  .product-card {
-    transition: all 0.18s ease;
-    border: 1.5px solid #f1f5f9 !important;
-    cursor: pointer;
-  }
-  .product-card:hover {
-    transform: translateY(-3px);
-    border-color: rgb(var(--v-theme-primary)) !important;
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1) !important;
+  /* ── Sticky Header ── */
+  .sticky-header {
+    position: sticky;
+    top: 0px;
+    z-index: 10;
+    background: linear-gradient(to bottom, #fdfbf9 80%, rgba(253, 251, 249, 0));
   }
 
+  /* ── Category Pills ── */
+  .cat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    margin: 0 4px;
+    border-radius: 100px;
+    background: #fff;
+    border: 1px solid #eeeae5;
+    color: #6d4c41;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+  }
+
+  .cat-pill:hover {
+    background: #f5f0eb;
+  }
+
+  .cat-pill.active {
+    background: #3e2723;
+    color: #fff;
+    border-color: #3e2723;
+    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.2);
+  }
+
+  /* ── Product Card ── */
+  .product-card {
+    border-radius: 20px !important;
+    background: #ffffff !important;
+    border: 1px solid #f0ece8 !important;
+    transition: all 0.25s ease;
+    overflow: hidden;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(62, 39, 35, 0.08) !important;
+    border-color: #e0d7cf !important;
+  }
+
+  .is-unavailable {
+    filter: grayscale(0.8);
+    opacity: 0.7;
+  }
   .variant-badge {
     position: absolute;
     top: 8px;
     right: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
+  /* ── Image Container ── */
+  .img-container {
+    position: relative;
+    height: 180px;
+    background: #f8f5f2;
+    margin: 8px;
+    border-radius: 14px;
+    overflow: hidden;
+  }
 
-  .sold-out-overlay {
+  .product-img {
+    transition: transform 0.5s ease;
+  }
+
+  .product-card:hover .product-img {
+    transform: scale(1.08);
+  }
+
+  .img-fallback {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Overlays & Badges ── */
+  .status-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .add-btn {
-    border-radius: 8px !important;
+  .variant-chip {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #3e2723;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
-  .text-slate-900 {
-    color: #0f172a;
-  }
-  .text-slate-800 {
-    color: #1e293b;
-  }
-
-  .category-slider {
-    background: transparent;
-  }
-
-  .gap-2 {
-    gap: 8px;
+  /* ── Info Styling ── */
+  .product-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2e1d1a;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .sticky-header {
-    position: sticky;
-    top: 0px;
-    z-index: 5;
-    backdrop-filter: blur(8px);
-    margin-bottom: 10px;
+  .price-stack {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .price-text {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #5d4037;
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+  }
+
+  .empty-title {
+    color: #3e2723;
+    font-weight: 800;
+  }
+
+  .empty-sub {
+    color: #8d6e63;
   }
 </style>

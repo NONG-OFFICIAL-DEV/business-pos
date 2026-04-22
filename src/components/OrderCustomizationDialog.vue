@@ -28,9 +28,7 @@
         orderType.value = 'Dine-in'
 
         // Default to the first variant (usually "Small" or the cheapest)
-        if (
-          props.product?.variants?.length > 0
-        ) {
+        if (props.product?.variants?.length > 0) {
           selectedVariant.value = props.product.variants[0]
         } else {
           selectedVariant.value = null
@@ -42,7 +40,7 @@
   // --- Calculations ---
   const currentItemPrice = computed(() => {
     // If it has variants, use the variant price. Otherwise, use base product price.
-    if (props.product?.variants.length >0 && selectedVariant.value) {
+    if (props.product?.variants.length > 0 && selectedVariant.value) {
       return parseFloat(selectedVariant.value.price_adjustment)
     }
     return parseFloat(props.product?.base_price || 0)
@@ -87,101 +85,157 @@
   <v-dialog
     :model-value="modelValue"
     @update:model-value="close"
-    max-width="435"
+    max-width="440"
+    scrollable
   >
-    <v-card rounded="xl" class="pa-4 shadow-lg">
-      <v-card-title class="d-flex justify-space-between align-center px-2">
-        <div class="text-h6 font-weight-black">Customize Order</div>
-        <v-btn icon="mdi-close" variant="tonal" size="small" @click="close" />
-      </v-card-title>
+    <v-card rounded="xl" class="pa-0 overflow-hidden">
+      <div class="d-flex align-center mb-2 pa-3 rounded-xl">
+        <v-avatar size="70" rounded="lg" class="border">
+          <v-img :src="product?.image_url" cover />
+        </v-avatar>
 
-      <v-card-text class="pa-2">
-        <div class="d-flex align-center mb-5 pa-3 rounded-xl border">
-          <v-avatar size="70" rounded="lg" class="border">
-            <v-img :src="product?.image_url" cover />
-          </v-avatar>
-
-          <div class="ml-3 flex-grow-1">
-            <div class="text-subtitle-1 font-weight-bold">
-              {{ product?.name }}
-            </div>
-            <div class="text-h6 font-weight-black text-primary">
-              ${{ currentItemPrice.toFixed(2) }}
-            </div>
+        <div class="ml-3 flex-grow-1">
+          <div class="text-subtitle-1 font-weight-bold">
+            {{ product?.name }}
           </div>
-          <QtyStepper v-model="quantity" :min="1" :max="100" />
+          <div class="text-h6 font-weight-black text-primary">
+            ${{ currentItemPrice.toFixed(2) }}
+          </div>
         </div>
+        <v-btn icon="mdi-close" variant="tonal" size="small" @click="close" />
+      </div>
 
+      <v-card-text class="pa-4 pt-0">
+        <div class="section-label">Order Type</div>
         <v-btn-toggle
           v-model="orderType"
           mandatory
-          color="primary"
-          class="d-flex mb-6"
+          color="brown-darken-3"
+          class="compact-toggle mb-5"
           variant="outlined"
-          density="comfortable"
+          divided
         >
-          <v-btn value="Dine-in" class="flex-grow-1 rounded-s-xl">
-            Dine-in
-          </v-btn>
-          <v-btn value="Takeaway" class="flex-grow-1">Takeaway</v-btn>
-          <v-btn value="Delivery" class="flex-grow-1 rounded-e-xl">
-            Delivery
-          </v-btn>
+          <v-btn value="Dine-in" class="flex-grow-1 text-none">Dine-in</v-btn>
+          <v-btn value="Takeaway" class="flex-grow-1 text-none">Takeaway</v-btn>
+          <v-btn value="Delivery" class="flex-grow-1 text-none">Delivery</v-btn>
         </v-btn-toggle>
 
         <template v-if="product?.variants?.length > 0">
-          <label class="text-subtitle-2 font-weight-bold d-block mb-2">
-            Select Size
-          </label>
-          <v-radio-group v-model="selectedVariant" hide-details class="mb-4">
-            <v-card
-              v-for="v in product.variants"
-              :key="v.id"
-              flat
-              border
-              :class="[
-                'mb-2 rounded-lg',
-                selectedVariant?.id === v.id
-                  ? 'border-primary border-opacity-100 bg-blue-lighten-5'
-                  : ''
-              ]"
-              @click="selectedVariant = v"
-            >
-              <div class="d-flex align-center pa-2">
-                <v-radio :value="v" color="primary" density="compact" />
-                <span class="text-subtitle-2">{{ v.name }}</span>
-                <v-spacer />
-                <span class="text-subtitle-2 font-weight-black">
-                  ${{ v.price_adjustment }}
-                </span>
+          <div class="section-label">Select Size</div>
+          <v-row dense class="mb-4">
+            <v-col v-for="v in product.variants" :key="v.id" cols="4">
+              <div
+                :class="[
+                  'variant-box',
+                  { active: selectedVariant?.id === v.id }
+                ]"
+                @click="selectedVariant = v"
+              >
+                <div class="text-caption font-weight-bold">{{ v.name }}</div>
+                <div class="text-caption">+${{ v.price_adjustment }}</div>
               </div>
-            </v-card>
-          </v-radio-group>
+            </v-col>
+          </v-row>
         </template>
 
-        <label class="text-subtitle-2 font-weight-bold d-block mb-2">
-          Sugar Level
-        </label>
-        <v-select
-          v-model="selectedSugar"
-          :items="sugarOptions"
-          variant="outlined"
-          rounded="lg"
-          density="comfortable"
-        />
+        <v-row dense>
+          <v-col cols="7">
+            <div class="section-label">Sugar Level</div>
+            <v-select
+              v-model="selectedSugar"
+              :items="sugarOptions"
+              variant="outlined"
+              rounded="lg"
+              density="compact"
+              hide-details
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="5">
+            <div class="section-label text-right">Quantity</div>
+            <div class="d-flex justify-end">
+              <QtyStepper v-model="quantity" :min="1" :max="100" />
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
 
-      <v-card-actions class="pa-2">
+      <div class="pa-4 pt-2">
         <v-btn
           block
-          size="x-large"
+          height="56"
           rounded="xl"
-          class="bg-primary text-none text-white"
+          elevation="4"
+          class="bg-brown-darken-3 text-none"
           @click="submitOrder"
         >
-          Add to Order — ${{ totalPrice }}
+          <div class="d-flex align-center justify-space-between w-100 px-2">
+            <span class="text-subtitle-1 font-weight-bold">Add to Order</span>
+            <span class="text-h6 font-weight-black">${{ totalPrice }}</span>
+          </div>
         </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #8d6e63;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .line-height-1 {
+    line-height: 1.2;
+  }
+
+  /* Compact Toggle Styling */
+  .compact-toggle {
+    width: 100%;
+    height: 40px !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+
+  /* Variant Grid Styling */
+  .variant-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .variant-box.active {
+    background: #3e2723;
+    color: white;
+    border-color: #3e2723;
+    box-shadow: 0 4px 8px rgba(62, 39, 35, 0.2);
+  }
+
+  .variant-box:hover:not(.active) {
+    background: #fdfbf9;
+    border-color: #8d6e63;
+  }
+
+  /* Customizing V-Select for tablet density */
+  :deep(.v-field__input) {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    min-height: 40px !important;
+  }
+
+  .bg-brown-lighten-5 {
+    background-color: #efebe9 !important;
+  }
+  .bg-brown-darken-3 {
+    background-color: #4e342e !important;
+    color: white !important;
+  }
+</style>
