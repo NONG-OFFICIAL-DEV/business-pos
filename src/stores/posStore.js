@@ -10,8 +10,9 @@ export const usePosStore = defineStore(
      * ------------------- */
 
     const cart = ref([])
-    const paymentMethod = ref('qr')
+    const paymentMethod = ref('cash')
     const orderId = ref(null)
+    const discount = ref(0)
 
     const stores = [
       { id: 1, name: 'Coffee Shop', type: 'coffee' },
@@ -19,8 +20,8 @@ export const usePosStore = defineStore(
     ]
 
     const paymentMethods = [
-      { id: 'qr', icon: 'mdi-qrcode-scan', label: 'QR' },
       { id: 'cash', icon: 'mdi-cash', label: 'Cash' },
+      { id: 'qr', icon: 'mdi-qrcode-scan', label: 'QR' },
       { id: 'card', icon: 'mdi-credit-card-outline', label: 'Card' }
     ]
 
@@ -42,11 +43,19 @@ export const usePosStore = defineStore(
       activeItems.value.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
     )
 
-    const total = computed(() => subtotal.value)
+    // Subtract the discount from subtotal
+    const total = computed(() => {
+      const result = subtotal.value - discount.value
+      return result > 0 ? result : 0 // Ensure total never goes negative
+    })
 
     /** -------------------
      * ACTIONS
      * ------------------- */
+    function setDiscount(amount) {
+      // Use the ref directly instead of 'this'
+      discount.value = amount
+    }
 
     function selectStore(store) {
       selectedStore.value = store
@@ -75,7 +84,7 @@ export const usePosStore = defineStore(
       selectedBill.value = null
       isPrintBill.value = false
     }
-    
+
     function addToCart(item) {
       isPrintBill.value = false
       selectedBill.value = []
@@ -105,6 +114,8 @@ export const usePosStore = defineStore(
 
     function clearCart() {
       cart.value = []
+      discount.value = 0
+      paymentMethod.value = 'cash'
     }
 
     function setPaymentMethod(method) {
@@ -128,9 +139,11 @@ export const usePosStore = defineStore(
       activeItems,
       subtotal,
       total,
+      discount,
 
       /** actions */
       selectStore,
+      setDiscount,
       selectTable,
       clearTable,
       selectBill,

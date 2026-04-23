@@ -22,150 +22,193 @@
 
 <template>
   <v-app-bar elevation="0" class="header-glass px-4 border-b">
-    <div class="d-flex align-center brand-section mr-8">
+    <div class="d-flex align-center brand-section mr-6">
       <div class="logo-box mr-3">
-        <v-icon icon="mdi-lightning-bolt" color="white" size="24" />
+        <v-icon icon="mdi-coffee" color="white" size="22" />
       </div>
       <div class="d-flex flex-column d-none d-sm-flex">
         <span class="brand-title">
           QUICK
-          <span class="text-primary">POS</span>
+          <span class="brand-accent">POS</span>
         </span>
-        <span class="text-caption text-grey-darken-1 font-weight-bold mt-n1">
-          STATION 01 <v-chip size="x-small">{{ branchName }} Branch</v-chip>
-        </span>
+        <div class="d-flex align-center mt-n1">
+          <span class="station-label">STATION 01</span>
+          <v-chip
+            size="x-small"
+            variant="flat"
+            color="brown-lighten-5"
+            class="ml-2 font-weight-bold text-brown"
+          >
+            {{ branchName }}
+          </v-chip>
+        </div>
       </div>
     </div>
+
     <v-app-bar-title>
-      <v-responsive max-width="400" class="mx-auto">
+      <v-responsive max-width="440" class="mx-auto">
         <v-text-field
           :model-value="search"
           @update:model-value="emit('update:search', $event)"
           prepend-inner-icon="mdi-magnify"
-          append-inner-icon="mdi-barcode-scan"
-          placeholder="Search menu ..."
+          placeholder="Search menu (e.g. Latte)..."
           hide-details
-          density="comfortable"
+          density="compact"
           variant="solo"
           flat
           class="search-input"
-          rounded="xl"
-        />
+          rounded="lg"
+        >
+          <template v-slot:append-inner>
+            <v-icon size="20" color="brown-lighten-3" class="cursor-pointer">
+              mdi-barcode-scan
+            </v-icon>
+          </template>
+        </v-text-field>
       </v-responsive>
     </v-app-bar-title>
 
-     <template v-slot:append>
-       <div v-if="!isCoffeeStore">
-         <v-btn icon="" variant="tonal" size="small" @click="$emit('orders')">
-           <v-badge
-             :content="content"
-             :model-value="content > 0"
-             color="success"
-             location="top right"
-             floating
-           >
-             <v-icon icon="mdi-cash-register" />
-           </v-badge>
-         </v-btn>
-       </div>
-       <v-divider
-         v-if="!isCoffeeStore"
-         vertical
-         inset
-         class="mx-4 d-none d-sm-block"
-       />
-      
-       <div class="user-pill d-flex align-center pa-1 pr-3 ml-2">
-         <v-avatar size="36" class="elevation-2">
-           <v-img
-             src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
-             cover
-           />
-         </v-avatar>
-   
-         <div class="ml-3 d-none d-md-block text-start" style="line-height: 1.2">
-           <div class="text-subtitle-2 font-weight-black text-slate-900">
-             {{ user?.full_name || 'Operator' }}
-           </div>
-           <div class="text-caption text-primary font-weight-bold">{{ roleName }}</div>
-         </div>
-   
-         <v-menu location="bottom end" transition="slide-y-transition">
-           <template v-slot:activator="{ props }">
-             <v-btn
-               icon="mdi-chevron-down"
-               variant="text"
-               size="small"
-               color="grey-darken-1"
-               v-bind="props"
-               class="ml-1"
-             />
-           </template>
-           <v-list width="200" rounded="lg" class="mt-2">
-             <v-list-item prepend-icon="mdi-history" title="Shift History" />
-             <v-divider class="my-2" />
-             <v-list-item
-               prepend-icon="mdi-logout"
-               title="Logout"
-               color="error"
-               class="text-error"
-               @click="handleLogout"
-             />
-           </v-list>
-         </v-menu>
-       </div>
-     </template>
+    <template v-slot:append>
+      <div v-if="!isCoffeeStore" class="mr-2">
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          @click="$emit('orders')"
+          class="action-btn"
+        >
+          <v-badge
+            :content="content"
+            :model-value="content > 0"
+            color="orange-darken-3"
+            offset-x="2"
+            offset-y="2"
+          >
+            <v-icon icon="mdi-tray-full" color="brown-darken-2" size="24" />
+          </v-badge>
+        </v-btn>
+      </div>
+
+      <v-divider vertical inset class="mx-2 d-none d-sm-block" />
+
+      <div class="user-profile-section d-flex align-center pl-2">
+        <div class="text-right d-none d-md-block mr-3" style="line-height: 1.1">
+          <div class="user-name">{{ user?.full_name || 'Barista' }}</div>
+          <div class="user-role">{{ roleName }}</div>
+        </div>
+
+        <v-menu location="bottom end" transition="slide-y-transition">
+          <template v-slot:activator="{ props }">
+            <v-avatar
+              v-bind="props"
+              size="38"
+              class="cursor-pointer user-avatar"
+            >
+              <v-img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                cover
+              />
+            </v-avatar>
+          </template>
+
+          <v-list width="200" rounded="xl" class="mt-3 pa-2 shadow-xl">
+            <v-list-item
+              prepend-icon="mdi-logout-variant"
+              title="Logout"
+              base-color="error"
+              rounded="lg"
+              @click="handleLogout"
+            />
+          </v-list>
+        </v-menu>
+      </div>
+    </template>
   </v-app-bar>
 </template>
 
 <style scoped>
+  /* ── Container ── */
   .header-glass {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(141, 110, 99, 0.1) !important;
   }
 
+  /* ── Branding ── */
   .logo-box {
-    background: #1867c0;
-    height: 40px;
-    width: 40px;
+    background: #3e2723; /* Espresso */
+    height: 38px;
+    width: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(24, 103, 192, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.2);
   }
 
   .brand-title {
-    font-size: 1.1rem;
-    font-weight: 900;
+    font-size: 1.15rem;
+    font-weight: 800;
     letter-spacing: -0.5px;
-    color: #0f172a;
+    color: #2e1d1a;
   }
 
+  .brand-accent {
+    color: #8d6e63; /* Latte color */
+    margin-left: 2px;
+  }
+
+  .station-label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: #a1887f;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Search Bar ── */
   .search-input :deep(.v-field) {
-    background-color: #f1f5f9 !important;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
+    background-color: #f5f0eb !important; /* Warm Cream */
+    border-radius: 12px !important;
+    transition: all 0.25s ease;
   }
 
   .search-input :deep(.v-field--focused) {
-    border-color: #1867c0 !important;
-    background-color: white !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(62, 39, 35, 0.08) !important;
+    border: 1px solid #d7ccc8 !important;
   }
 
-  .user-pill {
-    background: #f8fafc;
-    border-radius: 50px;
-    border: 1px solid #e2e8f0;
+  /* ── User & Actions ── */
+  .user-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #3e2723;
   }
 
-  .text-slate-900 {
-    color: #0f172a;
+  .user-role {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #a1887f;
+    text-transform: uppercase;
   }
 
-  /* For barcode icon pulse effect */
-  .mdi-barcode-scan {
-    color: #1867c0;
+  .user-avatar {
+    border: 2px solid #efebe9;
+    transition: transform 0.2s ease;
+  }
+
+  .user-avatar:hover {
+    transform: scale(1.05);
+  }
+
+  .action-btn {
+    background: #fdfbf9;
+    border: 1px solid #efebe9;
+  }
+
+  .shadow-xl {
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
   }
 </style>
