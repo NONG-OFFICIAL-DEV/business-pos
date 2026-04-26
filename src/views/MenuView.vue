@@ -111,9 +111,26 @@
       </div>
     </div>
 
-    <v-row v-if="isLoading" dense>
-      <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3">
-        <v-skeleton-loader type="image, article" class="rounded-xl" />
+    <v-row v-if="isLoading" dense class="product-grid">
+      <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3" lg="3">
+        <div class="skeleton-card">
+          <!-- Image area -->
+          <div class="skeleton-img-area">
+            <v-skeleton-loader type="image" :elevation="0" height="180" />
+          </div>
+
+          <!-- Info area -->
+          <div class="skeleton-info">
+            <!-- Product name -->
+            <v-skeleton-loader type="text" width="70%" :elevation="0" />
+
+            <!-- Price + button row -->
+            <div class="skeleton-bottom-row">
+              <v-skeleton-loader type="text" width="88px" :elevation="0" />
+              <div class="skeleton-btn" />
+            </div>
+          </div>
+        </div>
       </v-col>
     </v-row>
 
@@ -409,5 +426,57 @@
 
   .empty-sub {
     color: #8d6e63;
+  }
+
+  .skeleton-card {
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #f0ece8;
+    overflow: hidden;
+  }
+
+  .skeleton-img-area {
+    margin: 8px;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 180px;
+  }
+
+  /* Force the image bone to fill the container fully */
+  .skeleton-img-area :deep(.v-skeleton-loader) {
+    height: 100%;
+  }
+  .skeleton-img-area :deep(.v-skeleton-loader__image) {
+    height: 100% !important;
+    border-radius: 0;
+  }
+
+  .skeleton-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .skeleton-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Square rounded button bone — matches the real add button */
+  .skeleton-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f0ece8;
+    flex-shrink: 0;
+  }
+
+  :deep(.v-skeleton-loader__text),
+  :deep(.v-skeleton-loader__image),
+  :deep(.v-skeleton-loader__bone) {
+    background: #ede8e3 !important;
+    border-radius: 8px;
   }
 </style>

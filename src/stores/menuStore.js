@@ -4,6 +4,7 @@ import { menuService } from '@/api/menu'
 
 export const useMenuStore = defineStore('menu', () => {
   const menus = ref([])
+  const loading = ref(false)
   const products = ref([])
 
   async function fetchMenus() {
@@ -11,9 +12,11 @@ export const useMenuStore = defineStore('menu', () => {
     menus.value = res.data.data.data || []
   }
   async function getProducts(params) {
-    const res = await menuService.fetchProducts(params)    
+    loading.value = true
+    const res = await menuService.fetchProducts(params)
     products.value = res.data.data.data || []
+    loading.value = false
   }
 
-  return { menus,products, fetchMenus, getProducts }
+  return { loading,menus, products, fetchMenus, getProducts }
 })
