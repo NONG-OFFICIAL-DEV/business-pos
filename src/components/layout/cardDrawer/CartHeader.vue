@@ -3,6 +3,8 @@
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
   import { usePosStore } from '@/stores/posStore'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const route = useRoute()
   const posStore = usePosStore()
@@ -35,10 +37,10 @@
     class="cart-header px-4 py-3 border-b d-flex align-center justify-space-between"
   >
     <div>
-      <div class="text-subtitle-2 font-weight-black">CURRENT ORDER</div>
+      <div class="text-subtitle-2 font-weight-black">{{ t('order.title') }}</div>
 
       <div v-if="isCoffeeStore" class="text-caption text-medium-emphasis">
-        {{ count }} item{{ count !== 1 ? 's' : '' }}
+        {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
       </div>
 
       <template v-else-if="isRestaurant">
@@ -47,13 +49,13 @@
             T-{{ table.table_number }}
           </v-chip>
           <span class="text-caption text-medium-emphasis">
-            {{ count }} item{{ count !== 1 ? 's' : '' }}
+            {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
           </span>
         </div>
       </template>
 
       <div v-else class="text-caption text-medium-emphasis">
-        {{ count }} item{{ count !== 1 ? 's' : '' }}
+        {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
       </div>
     </div>
 
@@ -89,7 +91,7 @@
           class="text-none font-weight-bold"
           @click="$emit('clearBill')"
         >
-          Clear
+          {{t('btn.clear')}}
         </v-btn>
       </div>
 
@@ -119,7 +121,7 @@
           class="font-weight-bold"
         >
           <v-icon start icon="mdi-package-variant-closed" size="14" />
-          {{ count }} items
+          {{ count }} {{t('order.item')}}
         </v-chip>
       </div>
     </div>

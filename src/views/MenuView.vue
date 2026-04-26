@@ -4,6 +4,8 @@
   import { useCategoryMenuStore } from '@/stores/categoryMenu'
   import { useAuthStore } from '@/stores/auth'
   import { useBuType } from '@/composables/useBuType'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
   const { isRestaurant, isCoffeeStore } = useBuType()
 
   const authStore = useAuthStore()
@@ -89,7 +91,7 @@
               @click="toggle"
             >
               <v-icon size="16">mdi-apps</v-icon>
-              <span>All Items</span>
+              <span>{{ t('label.all_items') }}</span>
             </button>
           </v-slide-group-item>
 
@@ -198,7 +200,7 @@
               class="variant-badge font-weight-black text-primary"
             >
               <v-icon icon="mdi-tune" size="10" class="mr-1" />
-              OPTIONS
+              {{t('menu.options')}}
             </v-chip>
             <div v-if="product.is_available === false" class="status-overlay">
               <v-chip

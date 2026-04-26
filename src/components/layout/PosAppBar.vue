@@ -1,4 +1,8 @@
 <script setup>
+  import LanguageSwicher from '@/components/customs/LanguageSwicher.vue'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
+
   defineProps({
     search: String,
     user: Object,
@@ -51,7 +55,7 @@
           :model-value="search"
           @update:model-value="emit('update:search', $event)"
           prepend-inner-icon="mdi-magnify"
-          placeholder="Search menu (e.g. Latte)..."
+          :placeholder="t('menu.search_placeholder')"
           hide-details
           density="compact"
           variant="solo"
@@ -88,7 +92,12 @@
           </v-badge>
         </v-btn>
       </div>
-
+      <v-divider
+        vertical
+        class="border-opacity-20 mx-2"
+        style="height: 24px; align-self: center"
+      />
+      <LanguageSwicher />
       <v-divider vertical inset class="mx-2 d-none d-sm-block" />
 
       <div class="user-profile-section d-flex align-center pl-2">

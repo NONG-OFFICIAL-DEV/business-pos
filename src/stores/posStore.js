@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 export const usePosStore = defineStore(
   'pos',
@@ -13,6 +14,7 @@ export const usePosStore = defineStore(
     const paymentMethod = ref('cash')
     const orderId = ref(null)
     const discount = ref(0)
+    const { t } = useI18n()
 
     const stores = [
       { id: 1, name: 'Coffee Shop', type: 'coffee' },
@@ -20,9 +22,9 @@ export const usePosStore = defineStore(
     ]
 
     const paymentMethods = [
-      { id: 'cash', icon: 'mdi-cash', label: 'Cash' },
-      { id: 'qr', icon: 'mdi-qrcode-scan', label: 'QR' },
-      { id: 'card', icon: 'mdi-credit-card-outline', label: 'Card' }
+      { id: 'cash', icon: 'mdi-cash', label: t('payment.cash') },
+      { id: 'qr', icon: 'mdi-qrcode-scan', label: t('payment.qr') },
+      { id: 'card', icon: 'mdi-credit-card-outline', label: t('payment.card') }
     ]
 
     const selectedStore = ref(stores[1])

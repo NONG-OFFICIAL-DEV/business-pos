@@ -79,12 +79,12 @@
           @clear="clearCart"
           @clear-bill="clearBill"
         />
-  
+
         <!-- CONTENT -->
         <div class="flex-grow-1 overflow-y-auto pa-3">
           <CartItems :items="displayItems" @update-qty="updateQty" />
         </div>
-  
+
         <!-- FOOTER -->
         <CartFooter
           :subtotal="posStore.subtotal"
