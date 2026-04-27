@@ -281,6 +281,10 @@ function buildBytes(r) {
   b(totalsRowToEscPosImage('Payment / បង់:', payLbl))
   if (cash > 0)   b(totalsRowToEscPosImage('Cash / ទទួល:', money(cash)))
   if (change > 0) b(totalsRowToEscPosImage('Change / អាប់:', money(change), { bold: true }))
+  t(line())
+
+  // Big queue number
+  b(bigNumberToEscPosImage(String(r.queue_number_display ?? '-')))
 
   // ── FOOTER ──
   t(line())
