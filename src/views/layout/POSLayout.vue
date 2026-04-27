@@ -15,6 +15,7 @@
   import OrderCustomizationDialog from '@/components/OrderCustomizationDialog.vue'
   import QRPaymentDialog from '@/components/QRPaymentDialog.vue'
   import CashPaymentDialog from '@/components/CashPaymentDialog.vue'
+  import PosFooter from '@/components/layout/Footer.vue'
 
   /* COMPOSABLES */
   import { useAppUtils } from '@/composables/useAppUtils'
@@ -43,6 +44,9 @@ LOCAL STATE
   const showQRDialog = ref(false)
   const user = ref(null)
   const cashDialog = ref(false)
+  const connectUsb = ref(null)
+  const usbSupported = ref(true)
+  const usbConnected = ref(false)
 
   /* -------------------------
 COMPUTED
@@ -99,8 +103,9 @@ COMPUTED
       return {
         cash_tendered: extra.cash_tendered ?? 0,
         change_given: extra.change_given ?? 0,
+        branch_id: authStore.branch_id,
         items: activeItems.value.map(i => ({
-          menu_id: i.id,
+          product_id: i.id,
           quantity: i.quantity,
           price: i.unit_price,
           customizations: i.customizations || null,
@@ -235,7 +240,7 @@ ON MOUNT
       </div>
     </v-container>
   </v-main>
-
+  <PosFooter :connectUsb="connectUsb" :usbConnected="usbConnected" :usbSupported="usbSupported"/>
   <!-- DIALOGS -->
   <OrderCustomizationDialog
     v-model="showCustomizeDialog"

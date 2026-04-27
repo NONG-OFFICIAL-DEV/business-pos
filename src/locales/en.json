@@ -49,7 +49,8 @@
     "payment_method": "Payment Method",
     "status": "Status",
     "category": "Category",
-    "all_items": "All Items"
+    "all_items": "All Items",
+    "cash_received":"Cash received"
   },
 
   "order_type": {
@@ -80,7 +81,8 @@
     "khqr": "KHQR",
     "aba": "ABA",
     "acleda": "ACLEDA",
-    "wing": "Wing"
+    "wing": "Wing",
+    "amount_received":"Enter amount received"
   },
 
   "menu": {

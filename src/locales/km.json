@@ -52,7 +52,8 @@
     "payment_method": "វិធីបង់ប្រាក់",
     "status": "ស្ថានភាព",
     "category": "ប្រភេទ",
-    "all_items": "ម៉ឺនុយទាំងអស់"
+    "all_items": "ម៉ឺនុយទាំងអស់",
+    "cash_received":"សាច់ប្រាក់ដែលទទួល"
   },
 
   "order_type": {
@@ -83,7 +84,8 @@
     "khqr": "KHQR",
     "aba": "ABA",
     "acleda": "ACLEDA",
-    "wing": "Wing"
+    "wing": "Wing",
+    "amount_received":"បញ្ចូលទឹកសាច់ប្រាក់ដែលទទួលបាន"
   },
 
   "menu": {

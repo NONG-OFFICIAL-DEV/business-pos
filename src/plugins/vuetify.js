@@ -64,7 +64,7 @@ const vuetify = createVuetify({
       light: {
         dark: false,
         colors: {
-          primary: '#89474b',
+          primary: '#3e2723',
           secondary: '#c17290',
           textField: '#2f9dab',
           icon: '#653748',

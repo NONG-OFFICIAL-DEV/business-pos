@@ -2,15 +2,15 @@
   <v-dialog v-model="model" max-width="395" persistent>
     <v-card rounded="xl" class="pa-5">
       <div class="text-h6 font-weight-black mb-1">
-        {{ t('orders.cash_payment') }}
+        {{ t('payment.cash') }}
       </div>
       <div class="text-caption text-medium-emphasis mb-4">
-        {{ t('orders.enter_amount_received') }}
+        {{ t('payment.amount_received') }}
       </div>
 
       <div class="text-center mb-4">
         <div class="text-caption text-medium-emphasis">
-          {{ t('common.total') }}
+          {{ t('label.total') }}
         </div>
         <div class="text-h4 font-weight-black text-primary">
           {{ fmt(total) }}
@@ -19,7 +19,7 @@
 
       <v-text-field
         v-model.number="cashReceived"
-        :label="t('orders.cash_received')"
+        :label="t('label.cash_received')"
         variant="outlined"
         type="number"
         min="0"
@@ -32,7 +32,7 @@
       />
 
       <!-- Quick amount buttons -->
-      <div class="d-flex ga-2 mb-4">
+      <!-- <div class="d-flex ga-2 mb-4">
         <v-btn
           v-for="amount in quickAmounts"
           :key="amount"
@@ -44,7 +44,7 @@
         >
           {{ fmt(amount) }}
         </v-btn>
-      </div>
+      </div> -->
 
       <!-- Change -->
       <div
@@ -53,7 +53,7 @@
       >
         <div class="d-flex justify-space-between align-center">
           <span class="text-body-2 font-weight-bold">
-            {{ t('orders.change') }}
+            {{ t('label.change') }}
           </span>
           <span
             class="text-h6 font-weight-black"
