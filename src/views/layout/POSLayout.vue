@@ -132,6 +132,7 @@
         branch_id: authStore.branch_id,
         items: activeItems.value.map(i => ({
           product_id: i.id,
+          variant_id: i.variant_id || null,
           quantity: i.quantity,
           price: i.unit_price,
           customizations: i.customizations || null,
@@ -149,6 +150,7 @@
       branch_id: authStore.branch_id,
       payment_method: posStore.paymentMethod,
       items: activeItems.value.map(i => ({
+        variant_id: i.variant_id || null,
         product_id: i.id,
         quantity: i.quantity,
         price: i.unit_price,
@@ -167,9 +169,9 @@
         await menuStore.fetchMenus()
       }
 
-      if (posStore.paymentMethod === 'qr') {
-        showQRDialog.value = true
-      }
+      // if (posStore.paymentMethod === 'qr') {
+      //   showQRDialog.value = true
+      // }
 
       const data = res.data.data
 
