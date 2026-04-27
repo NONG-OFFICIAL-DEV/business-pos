@@ -1,14 +1,12 @@
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { usePermission } from '@/composables/usePermission'
-  /* STORES */
   import { usePosStore } from '@/stores/posStore'
   import { useMenuStore } from '@/stores/menuStore'
   import { useOrderStore } from '@/stores/orderStore'
   import { useAuthStore } from '@/stores/auth'
-  /* COMPONENTS */
   import PosAppBar from '@/components/layout/PosAppBar.vue'
   import SidebarMenu from '@/components/layout/SidebarMenu.vue'
   import PosCartDrawer from '@/components/layout/PosCartDrawer.vue'
@@ -16,8 +14,7 @@
   import QRPaymentDialog from '@/components/QRPaymentDialog.vue'
   import CashPaymentDialog from '@/components/CashPaymentDialog.vue'
   import PosFooter from '@/components/layout/Footer.vue'
-
-  /* COMPOSABLES */
+  import PrintReceiptDialog from '@/components/PrintReceiptDialog.vue'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useBuType } from '@/composables/useBuType'
   import { useReceipt } from '@/utils/printReceipt'
@@ -25,6 +22,8 @@
   const {
     print,
     printQueue,
+    printing,
+    error: printError,
     connectUsb,
     usbConnected,
     usbSupported
@@ -32,34 +31,60 @@
 
   const { isRestaurant, isCoffeeStore } = useBuType()
 
-  /* -------------------------
-STORES / UTILITIES
---------------------------*/
   const posStore = usePosStore()
   const menuStore = useMenuStore()
   const orderStore = useOrderStore()
   const authStore = useAuthStore()
-  const { isAdmin, isManager } = usePermission()
+  const { isAdmin } = usePermission()
 
   const router = useRouter()
   const { t } = useI18n()
   const { notif } = useAppUtils()
 
-  /* -------------------------
-LOCAL STATE
---------------------------*/
+  // ── Local state ────────────────────────────────────────────────────────────
   const search = ref('')
   const selectedProduct = ref(null)
   const showCustomizeDialog = ref(false)
   const showQRDialog = ref(false)
-  const user = ref(null)
   const cashDialog = ref(false)
+  const user = ref(null)
 
-  /* -------------------------
-COMPUTED
---------------------------*/
+  // Print dialog state
+  const printDialog = ref(false)
+  const pendingPrints = ref(null) // holds prints.queue_ticket + prints.receipt
+  const receipt = ref(null) // holds full order data for dialog display
 
-  // Use POS store computed: activeItems, subtotal, total
+  // ── Printer connection guard ───────────────────────────────────────────────
+  const isAndroid = () => /android/i.test(navigator.userAgent)
+
+  function isPrinterReady() {
+    // On Android, USB must be connected before printing
+    if (isAndroid() && usbSupported && !usbConnected.value) {
+      notif(t('printer.not_connected') || 'Please connect the printer first.', {
+        type: 'warning'
+      })
+      return false
+    }
+    return true
+  }
+
+  // ── Watch print errors ─────────────────────────────────────────────────────
+  watch(printError, val => {
+    if (!val) return
+    if (val === 'not_connected') {
+      notif(t('printer.not_connected') || 'Printer not connected.', {
+        type: 'warning'
+      })
+    } else if (val === 'disconnected') {
+      notif(t('printer.disconnected') || 'Printer disconnected.', {
+        type: 'error'
+      })
+    } else {
+      notif(val, { type: 'error' })
+    }
+  })
+
+  // ── Cart helpers ───────────────────────────────────────────────────────────
   const activeItems = computed(() => posStore.activeItems)
   const subtotal = computed(() => posStore.subtotal)
   const total = computed(() => posStore.total)
@@ -84,25 +109,19 @@ COMPUTED
     showCustomizeDialog.value = true
   }
 
-  // In PosCartDrawer, emit cash details up on checkout
-  // ─── Step 1: Checkout button clicked ──────────────────────────
+  // ── Checkout flow ──────────────────────────────────────────────────────────
   async function handleCheckout() {
     if (!activeItems.value.length) {
       notif('Cart is empty!', { type: 'warning' })
       return
     }
-
-    // For cash: show dialog FIRST, order created after confirmation
     if (posStore.paymentMethod === 'cash') {
       cashDialog.value = true
       return
     }
-
-    // For QR and others: create order immediately
     await submitOrder()
   }
 
-  // ─── Step 2: Build payload by store type ──────────────────────
   function buildPayload(extra = {}) {
     const type = posStore.selectedStore?.type
 
@@ -123,7 +142,6 @@ COMPUTED
       }
     }
 
-    // default: hospitality
     return {
       cash_tendered: extra.cash_tendered ?? 0,
       change_given: extra.change_given ?? 0,
@@ -139,7 +157,6 @@ COMPUTED
     }
   }
 
-  // ─── Step 3: Actually create the order ────────────────────────
   async function submitOrder(extra = {}) {
     const type = posStore.selectedStore?.type
 
@@ -154,34 +171,62 @@ COMPUTED
         showQRDialog.value = true
       }
 
-      const { prints } = res.data.data
+      const data = res.data.data
 
-      // Print both slips — queue ticket first (customer waiting), then receipt
-      await printQueue(prints.queue_ticket)
-      await print(prints.receipt)
+      // Store for dialog display
+      receipt.value = data
+      pendingPrints.value = data.prints // { order_ticket, queue_ticket, receipt }
 
       posStore.clearCart()
+
+      // Show print confirmation dialog
+      printDialog.value = true
     } catch {
       notif('Checkout failed. Please try again.', { type: 'error' })
     }
   }
 
-  // ─── Step 4: Cash confirmed → now create order ────────────────
   const confirmCashPayment = async ({ cash_received, change }) => {
     cashDialog.value = false
-    await submitOrder({
-      cash_tendered: cash_received,
-      change_given: change
-    })
+    await submitOrder({ cash_tendered: cash_received, change_given: change })
   }
 
-  async function handlePrintBill() {
-    const selectOrderId = posStore.orderId
-    const res = await orderStore.printBillForPayment(selectOrderId)
-    if (res.status == 200) {
-      window.open(res.data.invoice_url, '_blank')
-    }
+  // ── Print dialog handlers ──────────────────────────────────────────────────
+  async function handlePrint() {
+    // Guard: check printer connection before attempting
+    if (!isPrinterReady()) return
 
+    const prints = pendingPrints.value
+    if (!prints) return
+
+    try {
+      // Queue ticket → customer takes it while waiting
+      if (prints.queue_ticket) {
+        await printQueue(prints.queue_ticket)
+      }
+
+      // Receipt → store/customer copy
+      if (prints.receipt) {
+        await print(prints.receipt)
+      }
+
+      closePrintDialog()
+    } catch (e) {
+      // printError watcher handles user notification
+      console.error('[handlePrint]', e)
+    }
+  }
+
+  function closePrintDialog() {
+    printDialog.value = false
+    pendingPrints.value = null
+    receipt.value = null
+  }
+
+  // ── Other handlers ─────────────────────────────────────────────────────────
+  async function handlePrintBill() {
+    const res = await orderStore.printBillForPayment(posStore.orderId)
+    if (res.status === 200) window.open(res.data.invoice_url, '_blank')
     await orderStore.fetchAllOrders()
     await posStore.clearBill()
   }
@@ -192,13 +237,9 @@ COMPUTED
     router.push({ name: 'Login' })
   }
 
-  const goToOrders = () => {
-    router.push({ name: 'Orders' })
-  }
+  const goToOrders = () => router.push({ name: 'Orders' })
 
-  /* -------------------------
-ON MOUNT
---------------------------*/
+  // ── KHR formatter ──────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
       await orderStore.fetchAllOrders()
@@ -211,7 +252,6 @@ ON MOUNT
 </script>
 
 <template>
-  <!-- APPBAR -->
   <PosAppBar
     v-model:search="search"
     :user="user"
@@ -222,10 +262,9 @@ ON MOUNT
     @logout="handleLogout"
     @orders="goToOrders"
   />
-  <!-- SIDEBAR MENU (Hospitality only) -->
+
   <SidebarMenu v-if="isAdmin" />
 
-  <!-- CART DRAWER -->
   <PosCartDrawer
     :items="activeItems"
     :subtotal="subtotal"
@@ -236,7 +275,6 @@ ON MOUNT
     @print-bill="handlePrintBill"
   />
 
-  <!-- MAIN VIEW -->
   <v-main>
     <v-container class="pa-0" fluid>
       <div class="main-content-wrapper w-100">
@@ -253,59 +291,38 @@ ON MOUNT
       </div>
     </v-container>
   </v-main>
+
   <PosFooter
     :connectUsb="connectUsb"
     :usbConnected="usbConnected"
     :usbSupported="usbSupported"
   />
+
   <!-- DIALOGS -->
   <OrderCustomizationDialog
     v-model="showCustomizeDialog"
     :product="selectedProduct"
     @add-to-cart="handleAddProductToCart"
   />
+
   <CashPaymentDialog
     v-model="cashDialog"
     :total="total"
     @confirm="confirmCashPayment"
     @cancel="cashDialog = false"
   />
+
   <QRPaymentDialog v-model="showQRDialog" :total="total" />
+
+  <!-- ── Print Receipt Dialog ─────────────────────────────────────────────── -->
+  <PrintReceiptDialog
+    v-model="printDialog"
+    :receipt="receipt"
+    :printing="printing"
+    :usb-supported="usbSupported"
+    :usb-connected="usbConnected"
+    @print="handlePrint"
+    @skip="closePrintDialog"
+    @connect-usb="connectUsb"
+  />
 </template>
-<style scoped>
-  .cart-anchor {
-    position: fixed;
-    bottom: 24px; /* Space from bottom edge */
-    left: 0;
-    right: 0;
-    z-index: 999;
-    max-width: 450px; /* Optional: Keep it centered on larger screens */
-    margin: 0 auto;
-    margin-right: 45%;
-  }
-
-  /* The entry point (comes from the right) */
-  .slide-fade-enter-from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-
-  /* The exit point (disappears to the left) */
-  .slide-fade-leave-to {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  /* Animation timing - POS systems should be fast (0.2s) */
-  .slide-fade-enter-active,
-  .slide-fade-leave-active {
-    transition: all 0.2s ease-out;
-  }
-
-  .main-content-wrapper {
-    /* Subtract header height and footer height */
-    height: calc(100vh - 70px - 32px);
-    overflow-y: auto;
-    scroll-behavior: smooth;
-  }
-</style>

@@ -22,7 +22,8 @@
     "merge_table": "Merge Table",
     "view_receipt": "View Receipt",
     "send_kitchen": "Send to Kitchen",
-    "place_order": "PLACE ORDER"
+    "place_order": "PLACE ORDER",
+    "skip":"skip"
   },
 
   "label": {
@@ -50,7 +51,9 @@
     "status": "Status",
     "category": "Category",
     "all_items": "All Items",
-    "cash_received":"Cash received"
+    "cash_received":"Cash received",
+    "order_placed":"Order placed",
+    "queue":"Queue"
   },
 
   "order_type": {

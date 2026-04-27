@@ -1,4 +1,3 @@
-
 {
   "btn": {
     "add_to_order": "បន្ថែមទៅការបញ្ជាទិញ",
@@ -23,9 +22,10 @@
     "merge_table": "បញ្ចូលតុ",
     "view_receipt": "មើលវិក្កយបត្រ",
     "send_kitchen": "ផ្ញើទៅផ្ទះបាយ",
-    "place_order":"បញ្ជាការទិញ",
+    "place_order": "បញ្ជាការទិញ",
     "discount": "ការបញ្ចុះតម្លៃ",
-    "edit_discount": "កែការបញ្ចុះតម្លៃ"
+    "edit_discount": "កែការបញ្ចុះតម្លៃ",
+    "skip": "បោះបង់"
   },
 
   "label": {
@@ -53,7 +53,9 @@
     "status": "ស្ថានភាព",
     "category": "ប្រភេទ",
     "all_items": "ម៉ឺនុយទាំងអស់",
-    "cash_received":"សាច់ប្រាក់ដែលទទួល"
+    "cash_received": "សាច់ប្រាក់ដែលទទួល",
+    "order_placed": "ការបញ្ជាទិញ",
+    "queue":"លេខរងចាំ"
   },
 
   "order_type": {
@@ -85,7 +87,7 @@
     "aba": "ABA",
     "acleda": "ACLEDA",
     "wing": "Wing",
-    "amount_received":"បញ្ចូលទឹកសាច់ប្រាក់ដែលទទួលបាន"
+    "amount_received": "បញ្ចូលទឹកសាច់ប្រាក់ដែលទទួលបាន"
   },
 
   "menu": {
