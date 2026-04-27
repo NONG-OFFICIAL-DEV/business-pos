@@ -23,7 +23,9 @@
     "view_receipt": "View Receipt",
     "send_kitchen": "Send to Kitchen",
     "place_order": "PLACE ORDER",
-    "skip":"skip"
+    "skip": "skip",
+    "verify_pin": "verify pin",
+    "sign_in": "sign in"
   },
 
   "label": {
@@ -51,9 +53,9 @@
     "status": "Status",
     "category": "Category",
     "all_items": "All Items",
-    "cash_received":"Cash received",
-    "order_placed":"Order placed",
-    "queue":"Queue"
+    "cash_received": "Cash received",
+    "order_placed": "Order placed",
+    "queue": "Queue"
   },
 
   "order_type": {
@@ -85,7 +87,7 @@
     "aba": "ABA",
     "acleda": "ACLEDA",
     "wing": "Wing",
-    "amount_received":"Enter amount received"
+    "amount_received": "Enter amount received"
   },
 
   "menu": {
@@ -195,7 +197,7 @@
     "extraSauce": "Extra sauce",
     "noOnion": "No onion"
   },
-   "discount": {
+  "discount": {
     "title": "Apply Discount",
     "type": "Discount Type",
     "percentage": "Percentage",
@@ -203,5 +205,12 @@
     "enter_value": "Enter Value",
     "total_deducted": "Total discount to be deducted",
     "confirm": "Confirm Discount"
+  },
+  "login": {
+    "title":"Sign in to continue",
+    "subtitle": "Enter credentials to access your station",
+    "pin_code": "Pin code",
+    "password": "Password",
+    "email": "Email"
   }
 }

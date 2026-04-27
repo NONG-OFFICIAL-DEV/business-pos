@@ -20,6 +20,24 @@ export const useAuthStore = defineStore('auth', {
     // add whatever bu_type values your backend returns
   },
   actions: {
+    _applyLoginResponse(data) {
+      this.token = data.token
+      localStorage.setItem('token', data.token)
+
+      this.user = data.user
+      this.permissions = data.permissions ?? []
+      this.isSuperAdmin = data.is_super_admin ?? false
+      this.isOwner = data.is_owner ?? false
+      this.isStaff = data.is_staff ?? false
+      this.tenant_id = data.tenant_id ?? null
+      this.branch_id = data.branch_id ?? null
+      this.branch_name = data.branch_name ?? null
+      this.bu_name = data.bu_name ?? null
+      this.bu_type = data.bu_type ?? null
+      this.logo_url = data.logo_url ?? null
+      this.role_name = data.role_name ?? null
+      this.currency = data.currency ?? null
+    },
     //how to use it see in file Login.vue
     async login({ email, password }) {
       const response = await authService.userLogin(email, password)
@@ -27,6 +45,14 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.token
         this.user = response.data.user
         localStorage.setItem('token', response.data.token)
+      }
+      return response
+    },
+    // ── PIN login ──────────────────────────────────────────────────────────────
+    async loginByPin(pin_code, branch_id = null) {
+      const response = await authService.loginByPin(pin_code, branch_id)
+      if (response.data.status === 'success') {
+        this._applyLoginResponse(response.data)
       }
       return response
     },
