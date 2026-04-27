@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { usePermission } from '@/composables/usePermission'
@@ -20,6 +20,16 @@
   /* COMPOSABLES */
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useBuType } from '@/composables/useBuType'
+  import { useReceipt } from '@/utils/printReceipt'
+
+  const {
+    print,
+    printQueue,
+    connectUsb,
+    usbConnected,
+    usbSupported
+  } = useReceipt()
+
   const { isRestaurant, isCoffeeStore } = useBuType()
 
   /* -------------------------
@@ -44,9 +54,6 @@ LOCAL STATE
   const showQRDialog = ref(false)
   const user = ref(null)
   const cashDialog = ref(false)
-  const connectUsb = ref(null)
-  const usbSupported = ref(true)
-  const usbConnected = ref(false)
 
   /* -------------------------
 COMPUTED
@@ -137,7 +144,7 @@ COMPUTED
     const type = posStore.selectedStore?.type
 
     try {
-      await orderStore.createOrder(buildPayload(extra))
+      const res = await orderStore.createOrder(buildPayload(extra))
 
       if (type === 'hospitality') {
         await menuStore.fetchMenus()
@@ -146,6 +153,12 @@ COMPUTED
       if (posStore.paymentMethod === 'qr') {
         showQRDialog.value = true
       }
+
+      const { prints } = res.data.data
+
+      // Print both slips — queue ticket first (customer waiting), then receipt
+      await printQueue(prints.queue_ticket)
+      await print(prints.receipt)
 
       posStore.clearCart()
     } catch {
@@ -240,7 +253,11 @@ ON MOUNT
       </div>
     </v-container>
   </v-main>
-  <PosFooter :connectUsb="connectUsb" :usbConnected="usbConnected" :usbSupported="usbSupported"/>
+  <PosFooter
+    :connectUsb="connectUsb"
+    :usbConnected="usbConnected"
+    :usbSupported="usbSupported"
+  />
   <!-- DIALOGS -->
   <OrderCustomizationDialog
     v-model="showCustomizeDialog"
