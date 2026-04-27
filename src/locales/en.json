@@ -194,5 +194,14 @@
     "lessSalt": "Less salt",
     "extraSauce": "Extra sauce",
     "noOnion": "No onion"
+  },
+   "discount": {
+    "title": "Apply Discount",
+    "type": "Discount Type",
+    "percentage": "Percentage",
+    "fixed": "Fixed Amount",
+    "enter_value": "Enter Value",
+    "total_deducted": "Total discount to be deducted",
+    "confirm": "Confirm Discount"
   }
 }
