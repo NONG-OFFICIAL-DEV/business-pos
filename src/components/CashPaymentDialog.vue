@@ -85,7 +85,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { formatCurrency } from '@nong-official-dev/core'
+  import { formatKHR } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -112,7 +112,7 @@
     }
   )
 
-  const fmt = v => formatCurrency(v ?? 0)
+  const fmt = v => formatKHR(v ?? 0)
 
   const change = computed(() => cashReceived.value - props.total)
 

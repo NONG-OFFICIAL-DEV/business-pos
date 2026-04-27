@@ -6,6 +6,8 @@
   import { useBuType } from '@/composables/useBuType'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
+  import { formatKHR } from '@nong-official-dev/core'
+
   const { isRestaurant, isCoffeeStore } = useBuType()
 
   const authStore = useAuthStore()
@@ -200,7 +202,7 @@
               class="variant-badge font-weight-black text-primary"
             >
               <v-icon icon="mdi-tune" size="10" class="mr-1" />
-              {{t('menu.options')}}
+              {{ t('menu.options') }}
             </v-chip>
             <div v-if="product.is_available === false" class="status-overlay">
               <v-chip
@@ -225,27 +227,31 @@
             <div class="d-flex align-center justify-space-between mt-2">
               <div class="price-stack">
                 <span
-                  v-if="product.has_variants"
+                  v-if="product.variants.length > 0"
                   class="text-caption text-grey"
                 >
-                  From
+                  <!-- From -->
                 </span>
                 <span class="price-text">
-                  ${{
-                    product.has_variants
-                      ? product.variants?.[0]?.base_price
-                      : product.base_price
+                  {{
+                    formatKHR(
+                      product.variants?.length > 0
+                        ? parseFloat(product.variants[0].price_adjustment ?? 0)
+                        : parseFloat(product.base_price ?? 0)
+                    )
                   }}
                 </span>
               </div>
 
               <v-btn
                 :color="
-                  product.has_variants ? 'brown-darken-3' : 'brown-lighten-5'
+                  product.variants.length > 0
+                    ? 'brown-darken-3'
+                    : 'brown-lighten-5'
                 "
                 :class="{
-                  'text-white': product.has_variants,
-                  'text-brown-darken-3': !product.has_variants
+                  'text-white': product.variants.length > 0,
+                  'text-brown-darken-3': !product.variants.length > 0
                 }"
                 size="32"
                 flat
@@ -255,7 +261,9 @@
               >
                 <v-icon size="18">
                   {{
-                    product.has_variants ? 'mdi-dots-horizontal' : 'mdi-plus'
+                    product.variants.length > 0
+                      ? 'mdi-dots-horizontal'
+                      : 'mdi-plus'
                   }}
                 </v-icon>
               </v-btn>

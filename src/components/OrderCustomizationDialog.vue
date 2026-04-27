@@ -2,6 +2,7 @@
   import { ref, computed, watch } from 'vue'
   import QtyStepper from './customs/QtyStepper.vue'
   import { useI18n } from 'vue-i18n'
+  import { formatKHR } from '@nong-official-dev/core'
 
   const props = defineProps({ modelValue: Boolean, product: Object })
   const emit = defineEmits(['update:modelValue', 'add-to-cart'])
@@ -106,7 +107,7 @@
         </v-avatar>
         <div class="flex-grow-1 min-width-0">
           <div class="product-name">{{ product?.name }}</div>
-          <div class="product-price">${{ currentItemPrice.toFixed(2) }}</div>
+          <div class="product-price">{{ formatKHR(currentItemPrice) }}</div>
         </div>
         <v-btn
           icon="mdi-close"
@@ -152,7 +153,7 @@
               @click="selectedVariant = v"
             >
               <div class="v-name">{{ v.name }}</div>
-              <div class="v-price">+${{ v.price_adjustment }}</div>
+              <div class="v-price">{{formatKHR(v.price_adjustment) }}</div>
             </div>
           </div>
         </template>

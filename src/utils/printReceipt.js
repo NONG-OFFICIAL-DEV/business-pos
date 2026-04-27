@@ -26,7 +26,7 @@ async function getQz() {
 const PAPER_WIDTH_PX = 576 // ✅ 80mm @203dpi (approx)
 const CHAR_WIDTH = 48 // ✅ correct text columns
 const QZ_PRINTER = 'Diamond'
-const CURRENCY = '$'
+const CURRENCY = '៛'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ESC/POS constants

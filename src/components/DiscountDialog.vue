@@ -69,7 +69,7 @@
           <div class="text-caption">
             Total discount to be deducted: 
             <span class="font-weight-bold text-subtitle-2 ml-1">
-              -{{ formatCurrency(calculatedDiscount) }}
+              -{{ formatKHR(calculatedDiscount) }}
             </span>
           </div>
         </v-alert>
@@ -96,7 +96,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { formatCurrency } from '@nong-official-dev/core'
+import { formatKHR } from '@nong-official-dev/core'
 
 const props = defineProps({
   modelValue: Boolean,

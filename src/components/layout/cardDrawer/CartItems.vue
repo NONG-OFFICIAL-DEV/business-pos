@@ -1,5 +1,5 @@
 <script setup>
-  import { formatCurrency } from '@nong-official-dev/core'
+  import { formatKHR } from '@nong-official-dev/core'
   import QtyStepper from '@/components/customs/QtyStepper.vue'
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
@@ -62,7 +62,7 @@
               {{ item.product_name }}
             </span>
             <span class="price-total text-brown-darken-3">
-              {{ formatCurrency(item.unit_price * item.quantity) }}
+              {{ formatKHR(item.unit_price * item.quantity) }}
             </span>
           </div>
 
@@ -77,7 +77,7 @@
 
           <div class="d-flex justify-space-between align-center mt-2">
             <span class="unit-price">
-              {{ formatCurrency(item.unit_price) }}
+              {{ formatKHR(item.unit_price) }}
             </span>
 
             <div v-if="item.editable !== false" class="qty-control">

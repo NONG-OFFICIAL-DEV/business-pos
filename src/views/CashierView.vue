@@ -2,7 +2,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
   import { usePosStore } from '@/stores/posStore'
-  import { formatTimeAgo, formatCurrency } from '@nong-official-dev/core'
+  import { formatTimeAgo, formatKHR } from '@nong-official-dev/core'
   import echo from '@/utils/echo'
 
   // ─────────────────────────────────────────────
@@ -250,7 +250,7 @@
               <div>
                 <div class="text-caption text-grey mb-0">Total</div>
                 <div class="text-h5 font-weight-black text-primary">
-                  {{ formatCurrency(bill.total_amount) }}
+                  {{ formatKHR(bill.total_amount) }}
                 </div>
               </div>
               <v-btn

@@ -1,6 +1,6 @@
 <script setup>
   import { computed } from 'vue'
-  import { formatCurrency } from '@nong-official-dev/core'
+  import { formatKHR } from '@nong-official-dev/core'
   import { usePosStore } from '@/stores/posStore'
   import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
@@ -60,7 +60,7 @@
         class="d-flex justify-space-between text-caption text-brown-darken-1 mb-1"
       >
         <span>{{t('label.subtotal')}}</span>
-        <span class="font-weight-bold">{{ formatCurrency(subtotal) }}</span>
+        <span class="font-weight-bold">{{ formatKHR(subtotal) }}</span>
       </div>
 
       <div class="d-flex justify-space-between align-center mb-1">
@@ -77,7 +77,7 @@
           v-if="discount > 0"
           class="text-caption font-weight-bold text-success"
         >
-          -{{ formatCurrency(discount) }}
+          -{{ formatKHR(discount) }}
         </span>
       </div>
 
@@ -88,7 +88,7 @@
           {{ t('label.total') }}
         </span>
         <span class="text-h5 font-weight-black text-brown-darken-4">
-          {{ formatCurrency(total) }}
+          {{ formatKHR(total) }}
         </span>
       </div>
     </div>
