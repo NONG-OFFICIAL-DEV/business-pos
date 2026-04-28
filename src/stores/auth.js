@@ -6,7 +6,7 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     me: {},
     unread_notifications_count: 0,
-    token: localStorage.getItem('token') || null,
+    token: localStorage.getItem('coffee-pos-token') || null,
     branch_id: null,
     branch_id: null,
     branch_name: null,
@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     _applyLoginResponse(data) {
       this.token = data.token
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('coffee-pos-token', data.token)
 
       this.user = data.user
       this.permissions = data.permissions ?? []
@@ -44,7 +44,7 @@ export const useAuthStore = defineStore('auth', {
       if (response.data.status === 'success') {
         this.token = response.data.token
         this.user = response.data.user
-        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('coffee-pos-token', response.data.token)
       }
       return response
     },
@@ -63,7 +63,7 @@ export const useAuthStore = defineStore('auth', {
       // remove token & user
       this.token = null
       this.user = null
-      localStorage.removeItem('token')
+      localStorage.removeItem('coffee-pos-token')
     },
     async fetchMe() {
       const res = await authService.me().catch(() => {})

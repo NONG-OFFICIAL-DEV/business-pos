@@ -45,7 +45,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const { useAuthStore } = await import('@/stores/auth')
   const authStore = useAuthStore()
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('coffee-pos-token')
 
   // ── 1. No token → force Login ──────────────────────────────────────────
   if (!token) {
@@ -58,16 +58,16 @@ router.beforeEach(async (to, from, next) => {
     try {
       await authStore.fetchMe()
     } catch {
-      localStorage.removeItem('token')
+      localStorage.removeItem('coffee-pos-token')
       if (to.name === 'Login') return next()
       return next({ name: 'Login' })
     }
   }
 
   // ── 3. Logged-in user hits Login → redirect by role ───────────────────
-  if (to.name === 'Login') {
-    return next({ name: resolveHome(authStore) })
-  }
+  // if (to.name === 'Login') {
+  //   return next({ name: resolveHome(authStore) })
+  // }
 
   // ── 5. Route requires a specific permission ────────────────────────────
   if (to.meta.permission && !authStore.can(to.meta.permission)) {
