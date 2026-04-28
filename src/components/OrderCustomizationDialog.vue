@@ -105,7 +105,7 @@
         <v-avatar size="56" rounded="lg" class="flex-shrink-0">
           <v-img :src="product?.image_url" cover />
         </v-avatar>
-        <div class="flex-grow-1 min-width-0">
+        <div class="flex-grow-1 min-width-0 ms-4">
           <div class="product-name">{{ product?.name }}</div>
           <div class="product-price">{{ formatKHR(currentItemPrice) }}</div>
         </div>
