@@ -112,9 +112,9 @@
 
         <div class="brand-text">
           <h1 class="brand-title">
-            POS
+            Chamnaul
             <br />
-            System
+            POS
           </h1>
           <div class="brand-divider" />
           <p class="brand-desc">
