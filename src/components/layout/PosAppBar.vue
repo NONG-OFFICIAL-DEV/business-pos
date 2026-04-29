@@ -1,9 +1,10 @@
 <script setup>
+  import { ref, computed, onMounted } from 'vue'
   import LanguageSwicher from '@/components/customs/LanguageSwicher.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  defineProps({
+  const props = defineProps({
     search: String,
     user: Object,
     roleName: String,
@@ -19,6 +20,49 @@
     'orders'
   ])
 
+  function getInitials(first, last, fullName) {
+    // Priority 1: first + last
+    if (first || last) {
+      const f = first?.trim()?.[0] || ''
+      const l = last?.trim()?.[0] || ''
+      const result = (f + l).toUpperCase()
+      return result || 'OP'
+    }
+
+    // Priority 2: fallback to full name
+    if (fullName) {
+      const parts = fullName.trim().split(' ')
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase()
+      }
+      return parts[0].slice(0, 2).toUpperCase()
+    }
+
+    return 'OP'
+  }
+  const initials = computed(() =>
+    getInitials(
+      props.user?.first_name,
+      props.user?.last_name,
+      props.user?.full_name
+    )
+  )
+  // Fullscreen
+  const isFullscreen = ref(false)
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {})
+    } else {
+      document.exitFullscreen().catch(() => {})
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('fullscreenchange', () => {
+      isFullscreen.value = !!document.fullscreenElement
+    })
+  })
   function handleLogout() {
     emit('logout')
   }
@@ -99,7 +143,23 @@
       />
       <LanguageSwicher />
       <v-divider vertical inset class="mx-2 d-none d-sm-block" />
-
+      <!-- Fullscreen toggle -->
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        :color="isFullscreen ? 'primary' : 'grey-darken-1'"
+        rounded="lg"
+        class="mr-1"
+        :title="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'"
+        @click="toggleFullscreen"
+      >
+        <v-icon
+          :icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+          size="20"
+        />
+      </v-btn>
+      <v-divider vertical inset class="mx-2 d-none d-sm-block" />
       <div class="user-profile-section d-flex align-center pl-2">
         <div class="text-right d-none d-md-block mr-3" style="line-height: 1.1">
           <div class="user-name">{{ user?.full_name || 'Barista' }}</div>
@@ -110,16 +170,16 @@
           <template v-slot:activator="{ props }">
             <v-avatar
               v-bind="props"
-              size="38"
-              class="cursor-pointer user-avatar"
+              rounded="lg"
+              size="34"
+              color="primary"
+              class="op-avatar cursor-pointer"
             >
-              <v-img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-                cover
-              />
+              <span class="text-body-2 font-weight-black text-white">
+                {{ initials }}
+              </span>
             </v-avatar>
           </template>
-
           <v-list width="200" rounded="xl" class="mt-3 pa-2 shadow-xl">
             <v-list-item
               prepend-icon="mdi-logout-variant"
@@ -219,5 +279,16 @@
     box-shadow:
       0 20px 25px -5px rgba(0, 0, 0, 0.1),
       0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  /* ── Avatar ── */
+  .op-avatar {
+    border: 2px solid #e2e8f0;
+    transition: border-color 0.15s;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .op-avatar:hover {
+    border-color: rgb(var(--v-theme-primary));
   }
 </style>
