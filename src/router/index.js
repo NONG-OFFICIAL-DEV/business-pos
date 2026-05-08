@@ -9,7 +9,7 @@ const routes = [
   {
     path: '/pos',
     name: 'POS',
-    component: () => import('@/views/layout/POSLayout.vue'),
+    component: () => import('@/views/layout/Layout.vue'),
     redirect: '/pos/dining-table-view',
     children: [
       {
