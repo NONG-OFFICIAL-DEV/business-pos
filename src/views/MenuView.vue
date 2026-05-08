@@ -67,7 +67,7 @@
 </script>
 
 <template>
-  <v-container fluid class="pos-menu-view pa-4">
+  <v-container fluid class="pos-menu-view pa-0">
     <div class="sticky-header">
       <div class="category-wrap pb-4">
         <div v-if="isLoading" class="d-flex gap-3 overflow-hidden">

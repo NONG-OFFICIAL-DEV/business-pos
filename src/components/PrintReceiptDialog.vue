@@ -43,9 +43,7 @@
 
       <!-- ── Order summary ────────────────────────────────────────────────── -->
       <v-card-text class="text-center text-body-2 text-grey-darken-1">
-        {{ t('order.title') }}
-        <strong>#{{ receipt?.order_number }}</strong>
-        — {{ t('label.total') }}:
+        {{ t('label.total') }}:
         <strong>{{ formatKHR(receipt?.total_amount ?? 0) }}</strong>
       </v-card-text>
 

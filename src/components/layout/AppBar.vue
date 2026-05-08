@@ -9,16 +9,10 @@
     user: Object,
     roleName: String,
     branchName: String,
-    content: [String, Number],
-    isCoffeeStore: Boolean
+    content: [String, Number]
   })
 
-  const emit = defineEmits([
-    'update:search',
-    'update:store',
-    'logout',
-    'orders'
-  ])
+  const emit = defineEmits(['update:search', 'update:store', 'logout'])
 
   function getInitials(first, last, fullName) {
     // Priority 1: first + last
@@ -117,30 +111,6 @@
     </v-app-bar-title>
 
     <template v-slot:append>
-      <div v-if="!isCoffeeStore" class="mr-2">
-        <v-btn
-          icon
-          variant="text"
-          size="small"
-          @click="$emit('orders')"
-          class="action-btn"
-        >
-          <v-badge
-            :content="content"
-            :model-value="content > 0"
-            color="orange-darken-3"
-            offset-x="2"
-            offset-y="2"
-          >
-            <v-icon icon="mdi-tray-full" color="brown-darken-2" size="24" />
-          </v-badge>
-        </v-btn>
-      </div>
-      <v-divider
-        vertical
-        class="border-opacity-20 mx-2"
-        style="height: 24px; align-self: center"
-      />
       <LanguageSwicher />
       <v-divider vertical inset class="mx-2 d-none d-sm-block" />
       <!-- Fullscreen toggle -->
@@ -180,10 +150,39 @@
               </span>
             </v-avatar>
           </template>
-          <v-list width="200" rounded="xl" class="mt-3 pa-2 shadow-xl">
+          <v-list width="220" rounded="xl" class="mt-3 pa-2">
+            <!-- Profile header -->
+            <v-list-item class="mb-1" density="compact">
+              <template v-slot:prepend>
+                <v-avatar size="32" color="brown-darken-3" rounded="lg">
+                  <span class="text-caption font-weight-bold text-white">
+                    {{ initials }}
+                  </span>
+                </v-avatar>
+              </template>
+              <v-list-item-title class="font-weight-medium text-body-2">
+                {{ user?.full_name }}
+              </v-list-item-title>
+              <v-list-item-subtitle class="text-caption">
+                {{ roleName }}
+              </v-list-item-subtitle>
+            </v-list-item>
+
+            <v-divider class="mb-1" />
+
+            <!-- <v-list-item
+              prepend-icon="mdi-account-circle-outline"
+              title="My profile"
+              rounded="lg"
+            />
+            <v-list-item
+              prepend-icon="mdi-cog-outline"
+              title="Settings"
+              rounded="lg"
+            /> -->
             <v-list-item
               prepend-icon="mdi-logout-variant"
-              title="Logout"
+              title="Log out"
               base-color="error"
               rounded="lg"
               @click="handleLogout"
@@ -274,13 +273,6 @@
     background: #fdfbf9;
     border: 1px solid #efebe9;
   }
-
-  .shadow-xl {
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-  }
-
   /* ── Avatar ── */
   .op-avatar {
     border: 2px solid #e2e8f0;

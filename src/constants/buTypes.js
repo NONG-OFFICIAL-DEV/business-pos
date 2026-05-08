@@ -1,0 +1,4 @@
+export const BU_TYPES = {
+  COFFEE_SHOP: 'COFFEE_SHOP',
+  RESTAURANT: 'RESTAURANT',
+}

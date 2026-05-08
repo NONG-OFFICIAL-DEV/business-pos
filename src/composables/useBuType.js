@@ -1,14 +1,18 @@
-// composables/useBuType.js
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { BU_TYPES } from '@/constants/buTypes'
 
 export function useBuType() {
-  const auth = useAuthStore()
+  const authStore = useAuthStore()
+
+  const buType = computed(() => authStore.bu_type)
+
+  const isCoffeeShop = computed(() => buType.value === BU_TYPES.COFFEE_SHOP)
+  const isRestaurant = computed(() => buType.value === BU_TYPES.RESTAURANT)
 
   return {
-    buType:       computed(() => auth.bu_type),
-    isRestaurant: computed(() => auth.bu_type === 'restaurant'),
-    isCoffeeStore: computed(() => auth.bu_type === 'cafe'),
-    isRetail:     computed(() => auth.bu_type === 'retail'),
+    buType,
+    isCoffeeShop,
+    isRestaurant,
   }
 }

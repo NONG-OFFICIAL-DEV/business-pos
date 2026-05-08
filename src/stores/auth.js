@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import authService from '../api/auth'
+import { BU_TYPES } from '@/constants/buTypes'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -8,16 +9,14 @@ export const useAuthStore = defineStore('auth', {
     unread_notifications_count: 0,
     token: localStorage.getItem('coffee-pos-token') || null,
     branch_id: null,
-    branch_id: null,
     branch_name: null,
     roleName: null,
     bu_type: null
   }),
+
   getters: {
-    isRestaurant: state => state.bu_type === 'restaurant',
-    isRetail: state => state.bu_type === 'retail',
-    isWarehouse: state => state.bu_type === 'warehouse'
-    // add whatever bu_type values your backend returns
+    isRestaurant: state => state.bu_type === BU_TYPES.RESTAURANT,
+    isCoffeeShop: state => state.bu_type === BU_TYPES.COFFEE_SHOP
   },
   actions: {
     _applyLoginResponse(data) {

@@ -29,7 +29,7 @@
     usbSupported
   } = useReceipt()
 
-  const { isRestaurant, isCoffeeStore } = useBuType()
+  const { isCoffeeShop, isRestaurant } = useBuType()
 
   const posStore = usePosStore()
   const menuStore = useMenuStore()
@@ -260,12 +260,11 @@
     :roleName="authStore.roleName"
     :branchName="authStore.branch_name"
     :content="orderStore.unpaidCount"
-    :is-coffee-store="isCoffeeStore"
     @logout="handleLogout"
     @orders="goToOrders"
   />
 
-  <SidebarMenu v-if="isAdmin" />
+  <SidebarMenu v-if="isAdmin || isRestaurant"/>
 
   <PosCartDrawer
     :items="activeItems"
@@ -278,7 +277,7 @@
   />
 
   <v-main>
-    <v-container class="pa-0" fluid>
+    <v-container class="pa-4" fluid>
       <div class="main-content-wrapper w-100">
         <router-view v-slot="{ Component }">
           <transition name="slide-fade" mode="out-in">
