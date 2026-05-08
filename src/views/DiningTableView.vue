@@ -47,7 +47,7 @@
       type: 'success',
       color: 'primary'
     })
-    router.push('/pos/menu-list')
+    router.push('/pos/menu')
   }
 
   // ── Counters ───────────────────────────────────

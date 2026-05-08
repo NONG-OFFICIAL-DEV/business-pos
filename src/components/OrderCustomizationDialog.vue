@@ -147,13 +147,15 @@
           <div class="section-label">{{ t('label.size') }}</div>
           <div class="variant-row mb-4">
             <div
-              v-for="v in product.variants"
+              v-for="v in [...product.variants].sort(
+                (a, b) => a.price_adjustment - b.price_adjustment
+              )"
               :key="v.id"
               :class="['variant-box', { active: selectedVariant?.id === v.id }]"
               @click="selectedVariant = v"
             >
               <div class="v-name">{{ v.name }}</div>
-              <div class="v-price">{{formatKHR(v.price_adjustment) }}</div>
+              <div class="v-price">{{ formatKHR(v.price_adjustment) }}</div>
             </div>
           </div>
         </template>

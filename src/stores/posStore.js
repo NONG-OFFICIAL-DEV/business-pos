@@ -71,7 +71,7 @@ export const usePosStore = defineStore(
     const router = useRouter()
 
     function clearTable() {
-      router.push('/pos/menu-list')
+      router.push('/pos/menu')
       selectedTable.value = null
       clearCart()
     }

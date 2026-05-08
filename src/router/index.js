@@ -10,15 +10,15 @@ const routes = [
     path: '/pos',
     name: 'POS',
     component: () => import('@/views/layout/Layout.vue'),
-    redirect: '/pos/dining-table-view',
+    redirect: '/pos/tables',
     children: [
       {
-        path: 'dining-table-view',
+        path: 'tables',
         component: () => import('@/views/DiningTableView.vue'),
         meta: { showDrawer: 1 }
       },
       {
-        path: 'menu-list',
+        path: 'menu',
         component: () => import('@/views/MenuView.vue'),
         meta: { showDrawer: 2 }
       },

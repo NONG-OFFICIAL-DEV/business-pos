@@ -46,8 +46,8 @@
       const success = await store.loginByPin(pin.value)
       const path =
         success.data.bu_type === 'restaurant'
-          ? '/pos/dining-table-view'
-          : '/pos/menu-list'
+          ? '/pos/tables'
+          : '/pos/menu'
       router.push(path)
       notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
     } catch (err) {
@@ -78,8 +78,8 @@
       if (success) {
         const path =
           success.data.bu_type === 'restaurant'
-            ? '/pos/dining-table-view'
-            : '/pos/menu-list'
+            ? '/pos/tables'
+            : '/pos/menu'
         router.push(path)
         notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
       }
