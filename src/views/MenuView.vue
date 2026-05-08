@@ -7,7 +7,6 @@
   import { useBuType } from '@/composables/useBuType'
   import { useI18n } from 'vue-i18n'
   import { formatKHR } from '@nong-official-dev/core'
-  import CategorySlider from '@/components/common/CategorySlider.vue'
 
   const { t } = useI18n()
   const { isRestaurant, isCoffeeStore } = useBuType()
