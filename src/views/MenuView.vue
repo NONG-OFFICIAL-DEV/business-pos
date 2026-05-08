@@ -3,14 +3,19 @@
   import { useMenuStore } from '@/stores/menuStore'
   import { useCategoryMenuStore } from '@/stores/categoryMenu'
   import { useAuthStore } from '@/stores/auth'
+  import { useCartUiStore } from '@/stores/cartUiStore'
   import { useBuType } from '@/composables/useBuType'
   import { useI18n } from 'vue-i18n'
-  const { t } = useI18n()
   import { formatKHR } from '@nong-official-dev/core'
+  import CategorySlider from '@/components/common/CategorySlider.vue'
 
+  const { t } = useI18n()
   const { isRestaurant, isCoffeeStore } = useBuType()
 
   const authStore = useAuthStore()
+  const menuStore = useMenuStore()
+  const menuCategoryStore = useCategoryMenuStore()
+  const cartUi = useCartUiStore()
 
   const props = defineProps({
     search: {
@@ -18,9 +23,6 @@
       default: ''
     }
   })
-
-  const menuStore = useMenuStore()
-  const menuCategoryStore = useCategoryMenuStore()
 
   const selectedCategory = ref('All')
 
@@ -47,13 +49,14 @@
     return list
   })
 
-  const emit = defineEmits(['select', 'quick-add'])
+  const sortedVariants = (variants = []) =>
+    [...variants].sort((a, b) => a.price_adjustment - b.price_adjustment)
 
   function handleProductClick(product) {
     if (!product.variants?.length) {
-      emit('quick-add', product)
+      cartUi.handleQuickAdd(product)
     } else {
-      emit('select', product)
+      cartUi.openCustomizer(product)
     }
   }
 
@@ -67,8 +70,8 @@
 </script>
 
 <template>
-  <v-container fluid class="pos-menu-view pa-0">
-    <div class="sticky-header">
+  <div>
+    <div class="sticky-header px-4">
       <div class="category-wrap pb-4">
         <div v-if="isLoading" class="d-flex gap-3 overflow-hidden">
           <v-skeleton-loader
@@ -79,7 +82,7 @@
             class="rounded-pill"
           />
         </div>
-
+  
         <v-slide-group
           v-else
           v-model="selectedCategory"
@@ -96,7 +99,7 @@
               <span>{{ t('label.all_items') }}</span>
             </button>
           </v-slide-group-item>
-
+  
           <v-slide-group-item
             v-for="cat in menuCategoryStore.categories"
             :key="cat.id"
@@ -114,185 +117,184 @@
         </v-slide-group>
       </div>
     </div>
-
-    <v-row v-if="isLoading" dense class="product-grid">
-      <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3" lg="3">
-        <div class="skeleton-card">
-          <!-- Image area -->
-          <div class="skeleton-img-area">
-            <v-skeleton-loader type="image" :elevation="0" height="180" />
-          </div>
-
-          <!-- Info area -->
-          <div class="skeleton-info">
-            <!-- Product name -->
-            <v-skeleton-loader type="text" width="70%" :elevation="0" />
-
-            <!-- Price + button row -->
-            <div class="skeleton-bottom-row">
-              <v-skeleton-loader type="text" width="88px" :elevation="0" />
-              <div class="skeleton-btn" />
+    <v-container fluid class="pos-menu-view pa-4">
+  
+      <!-- Loading skeleton -->
+      <v-row v-if="isLoading" dense class="product-grid">
+        <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3" lg="3">
+          <div class="skeleton-card">
+            <div class="skeleton-img-area">
+              <v-skeleton-loader type="image" :elevation="0" height="180" />
             </div>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-
-    <div v-else-if="filteredProducts.length === 0" class="empty-state">
-      <v-avatar color="brown-lighten-5" size="80" class="mb-4">
-        <v-icon size="40" color="brown-lighten-2">
-          mdi-coffee-off-outline
-        </v-icon>
-      </v-avatar>
-      <h3 class="empty-title">No matches found</h3>
-      <p class="empty-sub">
-        We couldn't find anything matching your selection.
-      </p>
-      <v-btn
-        v-if="selectedCategory !== 'All'"
-        variant="flat"
-        color="brown-darken-2"
-        rounded="pill"
-        class="mt-4"
-        @click="selectedCategory = 'All'"
-      >
-        Clear Filter
-      </v-btn>
-    </div>
-
-    <v-row v-else dense class="product-grid">
-      <v-col
-        v-for="product in filteredProducts"
-        :key="product.id"
-        cols="6"
-        sm="4"
-        md="3"
-        lg="3"
-      >
-        <v-card
-          :ripple="product.is_available !== false"
-          flat
-          :class="[
-            'product-card',
-            { 'is-unavailable': product.is_available === false }
-          ]"
-          @click="product.is_available !== false && handleProductClick(product)"
-        >
-          <div class="img-container">
-            <v-img :src="product.image_url" cover class="product-img">
-              <template #placeholder>
-                <v-row class="fill-height ma-0" align="center" justify="center">
-                  <v-progress-circular indeterminate color="brown-lighten-4" />
-                </v-row>
-              </template>
-              <template #error>
-                <div class="img-fallback">
-                  <v-icon size="32" color="brown-lighten-3">
-                    mdi-coffee-outline
-                  </v-icon>
-                </div>
-              </template>
-            </v-img>
-            <!-- "OPTIONS" badge for variants -->
-            <v-chip
-              v-if="product.variants?.length > 0"
-              size="x-small"
-              color="white"
-              variant="flat"
-              class="variant-badge font-weight-black text-primary"
-            >
-              <v-icon icon="mdi-tune" size="10" class="mr-1" />
-              {{ t('menu.options') }}
-            </v-chip>
-            <div v-if="product.is_available === false" class="status-overlay">
-              <v-chip
-                color="black"
-                size="small"
-                variant="flat"
-                class="font-weight-bold"
-              >
-                SOLD OUT
-              </v-chip>
-            </div>
-
-            <div v-else-if="product.has_variants" class="variant-chip">
-              <v-icon size="10" class="mr-1">mdi-tune</v-icon>
-              CUSTOMIZABLE
-            </div>
-          </div>
-
-          <v-card-item class="pa-3">
-            <div class="product-name">{{ product.name }}</div>
-
-            <div class="d-flex align-center justify-space-between mt-2">
-              <div class="price-stack">
-                <span
-                  v-if="product.variants.length > 0"
-                  class="text-caption text-grey"
-                >
-                  <!-- From -->
-                </span>
-                <span class="price-text">
-                  {{
-                    formatKHR(
-                      product.variants?.length > 0
-                        ? parseFloat(product.variants[0].price_adjustment ?? 0)
-                        : parseFloat(product.base_price ?? 0)
-                    )
-                  }}
-                </span>
+            <div class="skeleton-info">
+              <v-skeleton-loader type="text" width="70%" :elevation="0" />
+              <div class="skeleton-bottom-row">
+                <v-skeleton-loader type="text" width="88px" :elevation="0" />
+                <div class="skeleton-btn" />
               </div>
-
-              <v-btn
-                :color="
-                  product.variants.length > 0
-                    ? 'brown-darken-3'
-                    : 'brown-lighten-5'
-                "
-                :class="{
-                  'text-white': product.variants.length > 0,
-                  'text-brown-darken-3': !product.variants.length > 0
-                }"
-                size="32"
-                flat
-                icon
-                rounded="lg"
-                :disabled="product.is_available === false"
-              >
-                <v-icon size="18">
-                  {{
-                    product.variants.length > 0
-                      ? 'mdi-dots-horizontal'
-                      : 'mdi-plus'
-                  }}
-                </v-icon>
-              </v-btn>
             </div>
-          </v-card-item>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+          </div>
+        </v-col>
+      </v-row>
+  
+      <!-- Empty state -->
+      <div v-else-if="filteredProducts.length === 0" class="empty-state">
+        <v-avatar color="brown-lighten-5" size="80" class="mb-4">
+          <v-icon size="40" color="brown-lighten-2">
+            mdi-coffee-off-outline
+          </v-icon>
+        </v-avatar>
+        <h3 class="empty-title">No matches found</h3>
+        <p class="empty-sub">
+          We couldn't find anything matching your selection.
+        </p>
+        <v-btn
+          v-if="selectedCategory !== 'All'"
+          variant="flat"
+          color="brown-darken-2"
+          rounded="pill"
+          class="mt-4"
+          @click="selectedCategory = 'All'"
+        >
+          Clear Filter
+        </v-btn>
+      </div>
+  
+      <!-- Product grid -->
+      <v-row v-else dense class="product-grid">
+        <v-col
+          v-for="product in filteredProducts"
+          :key="product.id"
+          cols="6"
+          sm="4"
+          md="3"
+          lg="3"
+        >
+          <v-card
+            :ripple="product.is_available !== false"
+            flat
+            :class="[
+              'product-card',
+              { 'is-unavailable': product.is_available === false }
+            ]"
+            @click="product.is_available !== false && handleProductClick(product)"
+          >
+            <div class="img-container">
+              <v-img :src="product.image_url" cover class="product-img">
+                <template #placeholder>
+                  <v-row class="fill-height ma-0" align="center" justify="center">
+                    <v-progress-circular indeterminate color="brown-lighten-4" />
+                  </v-row>
+                </template>
+                <template #error>
+                  <div class="img-fallback">
+                    <v-icon size="32" color="brown-lighten-3">
+                      mdi-coffee-outline
+                    </v-icon>
+                  </div>
+                </template>
+              </v-img>
+  
+              <v-chip
+                v-if="product.variants?.length > 0"
+                size="x-small"
+                color="white"
+                variant="flat"
+                class="variant-badge font-weight-black text-primary"
+              >
+                <v-icon icon="mdi-tune" size="10" class="mr-1" />
+                {{ t('menu.options') }}
+              </v-chip>
+  
+              <div v-if="product.is_available === false" class="status-overlay">
+                <v-chip
+                  color="black"
+                  size="small"
+                  variant="flat"
+                  class="font-weight-bold"
+                >
+                  SOLD OUT
+                </v-chip>
+              </div>
+  
+              <div v-else-if="product.has_variants" class="variant-chip">
+                <v-icon size="10" class="mr-1">mdi-tune</v-icon>
+                CUSTOMIZABLE
+              </div>
+            </div>
+  
+            <v-card-item class="pa-3">
+              <div class="product-name">{{ product.name }}</div>
+  
+              <div class="d-flex align-center justify-space-between mt-2">
+                <div class="price-stack">
+                  <span class="price-text">
+                    {{
+                      formatKHR(
+                        product.variants?.length > 0
+                          ? (sortedVariants(product.variants)[0]
+                              .price_adjustment ?? 0)
+                          : (product.base_price ?? 0)
+                      )
+                    }}
+                  </span>
+                </div>
+  
+                <v-btn
+                  :color="
+                    product.variants?.length > 0
+                      ? 'brown-darken-3'
+                      : 'brown-lighten-5'
+                  "
+                  :class="{
+                    'text-white': product.variants?.length > 0,
+                    'text-brown-darken-3': !product.variants?.length
+                  }"
+                  size="32"
+                  flat
+                  icon
+                  rounded="lg"
+                  :disabled="product.is_available === false"
+                >
+                  <v-icon size="18">
+                    {{
+                      product.variants?.length > 0
+                        ? 'mdi-dots-horizontal'
+                        : 'mdi-plus'
+                    }}
+                  </v-icon>
+                </v-btn>
+              </div>
+            </v-card-item>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
+
 <style>
   .v-slide-group__content {
     padding-top: 12px;
   }
 </style>
+
 <style scoped>
   .pos-menu-view {
-    background: #fdfbf9;
-    min-height: 100vh;
+    position: relative;
   }
-  /* ── Sticky Header ── */
+
   .sticky-header {
     position: sticky;
     top: 0px;
     z-index: 10;
-    background: linear-gradient(to bottom, #fdfbf9 80%, rgba(253, 251, 249, 0));
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e2e8f0;
+    /* background: linear-gradient(to bottom, #fdfbf9 80%, rgba(253, 251, 249, 0)); */
   }
 
-  /* ── Category Pills ── */
   .cat-pill {
     display: flex;
     align-items: center;
@@ -320,7 +322,6 @@
     box-shadow: 0 4px 12px rgba(62, 39, 35, 0.2);
   }
 
-  /* ── Product Card ── */
   .product-card {
     border-radius: 20px !important;
     background: #ffffff !important;
@@ -339,13 +340,14 @@
     filter: grayscale(0.8);
     opacity: 0.7;
   }
+
   .variant-badge {
     position: absolute;
     top: 8px;
     right: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
-  /* ── Image Container ── */
+
   .img-container {
     position: relative;
     height: 180px;
@@ -370,7 +372,6 @@
     justify-content: center;
   }
 
-  /* ── Overlays & Badges ── */
   .status-overlay {
     position: absolute;
     inset: 0;
@@ -395,7 +396,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
-  /* ── Info Styling ── */
   .product-name {
     font-size: 0.95rem;
     font-weight: 700;
@@ -419,7 +419,6 @@
     color: #5d4037;
   }
 
-  /* ── Empty State ── */
   .empty-state {
     display: flex;
     flex-direction: column;
@@ -452,10 +451,10 @@
     height: 180px;
   }
 
-  /* Force the image bone to fill the container fully */
   .skeleton-img-area :deep(.v-skeleton-loader) {
     height: 100%;
   }
+
   .skeleton-img-area :deep(.v-skeleton-loader__image) {
     height: 100% !important;
     border-radius: 0;
@@ -474,7 +473,6 @@
     justify-content: space-between;
   }
 
-  /* Square rounded button bone — matches the real add button */
   .skeleton-btn {
     width: 32px;
     height: 32px;

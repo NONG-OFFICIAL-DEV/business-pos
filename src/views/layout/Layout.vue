@@ -7,6 +7,7 @@
   import { useMenuStore } from '@/stores/menuStore'
   import { useOrderStore } from '@/stores/orderStore'
   import { useAuthStore } from '@/stores/auth'
+  import { useCartUiStore } from '@/stores/cartUiStore'
   import PosAppBar from '@/components/layout/AppBar.vue'
   import SidebarMenu from '@/components/layout/SidebarMenu.vue'
   import PosCartDrawer from '@/components/layout/CartDrawer.vue'
@@ -35,6 +36,7 @@
   const menuStore = useMenuStore()
   const orderStore = useOrderStore()
   const authStore = useAuthStore()
+  const cartUi = useCartUiStore()
   const { isAdmin } = usePermission()
 
   const router = useRouter()
@@ -43,22 +45,19 @@
 
   // ── Local state ────────────────────────────────────────────────────────────
   const search = ref('')
-  const selectedProduct = ref(null)
-  const showCustomizeDialog = ref(false)
   const showQRDialog = ref(false)
   const cashDialog = ref(false)
   const user = ref(null)
 
   // Print dialog state
   const printDialog = ref(false)
-  const pendingPrints = ref(null) // holds prints.queue_ticket + prints.receipt
-  const receipt = ref(null) // holds full order data for dialog display
+  const pendingPrints = ref(null)
+  const receipt = ref(null)
 
   // ── Printer connection guard ───────────────────────────────────────────────
   const isAndroid = () => /android/i.test(navigator.userAgent)
 
   function isPrinterReady() {
-    // On Android, USB must be connected before printing
     if (isAndroid() && usbSupported && !usbConnected.value) {
       notif(t('printer.not_connected') || 'Please connect the printer first.', {
         type: 'warning'
@@ -72,13 +71,9 @@
   watch(printError, val => {
     if (!val) return
     if (val === 'not_connected') {
-      notif(t('printer.not_connected') || 'Printer not connected.', {
-        type: 'warning'
-      })
+      notif(t('printer.not_connected') || 'Printer not connected.', { type: 'warning' })
     } else if (val === 'disconnected') {
-      notif(t('printer.disconnected') || 'Printer disconnected.', {
-        type: 'error'
-      })
+      notif(t('printer.disconnected') || 'Printer disconnected.', { type: 'error' })
     } else {
       notif(val, { type: 'error' })
     }
@@ -88,26 +83,6 @@
   const activeItems = computed(() => posStore.activeItems)
   const subtotal = computed(() => posStore.subtotal)
   const total = computed(() => posStore.total)
-
-  function handleAddProductToCart(item) {
-    posStore.addToCart(item)
-  }
-
-  function handleQuickAdd(product) {
-    handleAddProductToCart({
-      id: product.id,
-      product_name: product.name,
-      unit_price: product.base_price,
-      image_url: product.image_url,
-      quantity: 1,
-      customizations: {}
-    })
-  }
-
-  function openCustomizer(product) {
-    selectedProduct.value = product
-    showCustomizeDialog.value = true
-  }
 
   // ── Checkout flow ──────────────────────────────────────────────────────────
   async function handleCheckout() {
@@ -146,7 +121,7 @@
     return {
       cash_tendered: extra.cash_tendered ?? 0,
       change_given: extra.change_given ?? 0,
-      table_id: isCoffeeStore.value ? null : posStore.selectedTable?.id || null,
+      table_id: isCoffeeShop ? null : posStore.selectedTable?.id || null,
       branch_id: authStore.branch_id,
       payment_method: posStore.paymentMethod,
       items: activeItems.value.map(i => ({
@@ -169,19 +144,11 @@
         await menuStore.fetchMenus()
       }
 
-      // if (posStore.paymentMethod === 'qr') {
-      //   showQRDialog.value = true
-      // }
-
       const data = res.data.data
-
-      // Store for dialog display
       receipt.value = data
-      pendingPrints.value = data.prints // { order_ticket, queue_ticket, receipt }
+      pendingPrints.value = data.prints
 
       posStore.clearCart()
-
-      // Show print confirmation dialog
       printDialog.value = true
     } catch {
       notif('Checkout failed. Please try again.', { type: 'error' })
@@ -195,26 +162,16 @@
 
   // ── Print dialog handlers ──────────────────────────────────────────────────
   async function handlePrint() {
-    // Guard: check printer connection before attempting
     if (!isPrinterReady()) return
 
     const prints = pendingPrints.value
     if (!prints) return
 
     try {
-      // Queue ticket → customer takes it while waiting
-      if (prints.queue_ticket) {
-        await printQueue(prints.queue_ticket)
-      }
-
-      // Receipt → store/customer copy
-      if (prints.receipt) {
-        await print(prints.receipt)
-      }
-
+      if (prints.queue_ticket) await printQueue(prints.queue_ticket)
+      if (prints.receipt) await print(prints.receipt)
       closePrintDialog()
     } catch (e) {
-      // printError watcher handles user notification
       console.error('[handlePrint]', e)
     }
   }
@@ -236,19 +193,19 @@
   async function handleLogout() {
     await authStore.logout()
     notif(t('messages.logoutSucess'), { type: 'success', color: 'primary' })
-    router.push({ name: 'Login' })
+    router.push({ name: 'login' })
   }
 
-  const goToOrders = () => router.push({ name: 'Orders' })
+  const goToOrders = () => router.push({ name: 'pos.cashier' })
 
-  // ── KHR formatter ──────────────────────────────────────────────────────────
+  // ── On mount ───────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
       await orderStore.fetchAllOrders()
       user.value = authStore.me
     } catch {
       await authStore.logout()
-      router.push({ name: 'Login' })
+      router.push({ name: 'login' })
     }
   })
 </script>
@@ -264,7 +221,7 @@
     @orders="goToOrders"
   />
 
-  <SidebarMenu v-if="isAdmin || isRestaurant"/>
+  <SidebarMenu v-if="isAdmin || isRestaurant" />
 
   <PosCartDrawer
     :items="activeItems"
@@ -277,16 +234,11 @@
   />
 
   <v-main>
-    <v-container class="pa-4" fluid>
-      <div class="main-content-wrapper w-100">
+    <v-container class="pa-0" fluid>
+      <div class="mart-content">
         <router-view v-slot="{ Component }">
           <transition name="slide-fade" mode="out-in">
-            <component
-              :is="Component"
-              v-if="Component"
-              @quick-add="handleQuickAdd"
-              @select="openCustomizer"
-            />
+            <component :is="Component" v-if="Component" />
           </transition>
         </router-view>
       </div>
@@ -301,9 +253,10 @@
 
   <!-- DIALOGS -->
   <OrderCustomizationDialog
-    v-model="showCustomizeDialog"
-    :product="selectedProduct"
-    @add-to-cart="handleAddProductToCart"
+    v-model="cartUi.showCustomizeDialog"
+    :product="cartUi.selectedProduct"
+    @add-to-cart="posStore.addToCart"
+    @close="cartUi.closeCustomizer"
   />
 
   <CashPaymentDialog
@@ -315,7 +268,6 @@
 
   <QRPaymentDialog v-model="showQRDialog" :total="total" />
 
-  <!-- ── Print Receipt Dialog ─────────────────────────────────────────────── -->
   <PrintReceiptDialog
     v-model="printDialog"
     :receipt="receipt"
@@ -327,3 +279,17 @@
     @connect-usb="connectUsb"
   />
 </template>
+<style scoped>
+  .mart-content {
+    height: calc(100vh - 60px - 32px);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  .mart-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  .mart-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+</style>

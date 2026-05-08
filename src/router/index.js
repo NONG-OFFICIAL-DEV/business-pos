@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Login',
+    name: 'login',
     component: () => import('@/views/auth/Login.vue')
   },
   {
@@ -49,8 +49,8 @@ router.beforeEach(async (to, from, next) => {
 
   // ── 1. No token → force Login ──────────────────────────────────────────
   if (!token) {
-    if (to.name === 'Login') return next()
-    return next({ name: 'Login' })
+    if (to.name === 'login') return next()
+    return next({ name: 'login' })
   }
 
   // ── 2. Fetch user if not loaded ────────────────────────────────────────
@@ -59,13 +59,13 @@ router.beforeEach(async (to, from, next) => {
       await authStore.fetchMe()
     } catch {
       localStorage.removeItem('coffee-pos-token')
-      if (to.name === 'Login') return next()
-      return next({ name: 'Login' })
+      if (to.name === 'login') return next()
+      return next({ name: 'login' })
     }
   }
 
-  // ── 3. Logged-in user hits Login → redirect by role ───────────────────
-  // if (to.name === 'Login') {
+  // ── 3. Logged-in user hits login → redirect by role ───────────────────
+  // if (to.name === 'login') {
   //   return next({ name: resolveHome(authStore) })
   // }
 
