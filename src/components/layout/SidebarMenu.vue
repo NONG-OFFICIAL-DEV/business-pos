@@ -47,8 +47,6 @@
     user: Object
   })
 
-  const emit = defineEmits(['logout'])
-
   function isActive(item) {
     return route.path === item.to
   }
@@ -58,14 +56,14 @@
       tooltip: 'Tables',
       icon: 'mdi-table-chair',
       value: 'Dining Table',
-      to: '/pos/tables',
+      to: '/pos/dining-table-view',
       premium: false
     },
     {
       tooltip: 'Menu',
       icon: 'mdi-book-open-outline',
       value: 'Menu List',
-      to: '/pos/menu',
+      to: '/pos/menu-list',
       premium: false
     },
     {
@@ -96,7 +94,7 @@
       tooltip: 'Menu',
       icon: 'mdi-coffee-outline',
       value: 'Menu List',
-      to: '/pos/menu',
+      to: '/pos/menu-list',
       premium: false
     },
     {

@@ -8,6 +8,8 @@ import "./style.css"
 import axios from 'axios'
 import CustomTitle from "./components/global/CustomTitle.vue";
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+//register global core plugin
+import {CorePlugin} from '@nong-official-dev/core'
 
 
 const app = createApp(App)
@@ -35,6 +37,7 @@ app.use(pinia)
 app.use(vuetify)
 app.use(router)
 app.use(i18n)
+app.use(CorePlugin)
 app.component("CustomTitle", CustomTitle);
 
 app.mount("#app")

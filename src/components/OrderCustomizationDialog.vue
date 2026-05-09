@@ -2,8 +2,9 @@
   import { ref, computed, watch } from 'vue'
   import QtyStepper from './customs/QtyStepper.vue'
   import { useI18n } from 'vue-i18n'
-  import { formatKHR } from '@nong-official-dev/core'
+  import { formatKHR, useAppUtils } from '@nong-official-dev/core'
 
+  const { notif } = useAppUtils()
   const props = defineProps({ modelValue: Boolean, product: Object })
   const emit = defineEmits(['update:modelValue', 'add-to-cart'])
 
@@ -62,9 +63,7 @@
     return parseFloat(props.product?.base_price || 0)
   })
 
-  const totalPrice = computed(() =>
-    (currentItemPrice.value * quantity.value).toFixed(2)
-  )
+  const totalPrice = computed(() => currentItemPrice.value * quantity.value)
 
   function close() {
     emit('update:modelValue', false)
@@ -87,6 +86,11 @@
             : `${selectedSugar.value}%`,
         orderType: orderType.value
       }
+    })
+    notif(t('notification.addedToCart'), {
+      type: 'success',
+      color: 'primary',
+      timeout: 900
     })
     close()
   }
@@ -225,8 +229,8 @@
             <span class="text-subtitle-2 font-weight-bold">
               {{ t('btn.add_to_order') }}
             </span>
-            <span class="text-subtitle-1 font-weight-black">
-              ${{ totalPrice }}
+            <span class="text-subtitle-1 font-weight-black ms-3">
+              {{ formatKHR(totalPrice) }}
             </span>
           </div>
         </v-btn>

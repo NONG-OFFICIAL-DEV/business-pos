@@ -179,7 +179,7 @@
     "ready": "We'll notify you when it's ready.",
     "clear": "Cart cleared",
     "tableSelected": "Table {tableNumber} selected successfully",
-    "logoutSucess": "You have logged out successfully",
+    "logoutSuccess": "You have logged out successfully",
     "loginSucess": "You have logged in successfully"
   },
   "header": {

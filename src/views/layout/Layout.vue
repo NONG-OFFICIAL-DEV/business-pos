@@ -2,12 +2,15 @@
   import { ref, computed, watch, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useAppUtils } from '@nong-official-dev/core'
   import { usePermission } from '@/composables/usePermission'
   import { usePosStore } from '@/stores/posStore'
   import { useMenuStore } from '@/stores/menuStore'
   import { useOrderStore } from '@/stores/orderStore'
   import { useAuthStore } from '@/stores/auth'
   import { useCartUiStore } from '@/stores/cartUiStore'
+  import { useBuType } from '@/composables/useBuType'
+  import { useReceipt } from '@/utils/printReceipt'
   import PosAppBar from '@/components/layout/AppBar.vue'
   import SidebarMenu from '@/components/layout/SidebarMenu.vue'
   import PosCartDrawer from '@/components/layout/CartDrawer.vue'
@@ -16,10 +19,22 @@
   import CashPaymentDialog from '@/components/CashPaymentDialog.vue'
   import PosFooter from '@/components/layout/Footer.vue'
   import PrintReceiptDialog from '@/components/PrintReceiptDialog.vue'
-  import { useAppUtils } from '@/composables/useAppUtils'
-  import { useBuType } from '@/composables/useBuType'
-  import { useReceipt } from '@/utils/printReceipt'
 
+  // ── Composables ────────────────────────────────────────────────────────────
+  const { t } = useI18n()
+  const { notif } = useAppUtils()
+  const { isCoffeeShop, isRestaurant } = useBuType()
+  const { isAdmin } = usePermission()
+  const router = useRouter()
+
+  // ── Stores ─────────────────────────────────────────────────────────────────
+  const posStore = usePosStore()
+  const menuStore = useMenuStore()
+  const orderStore = useOrderStore()
+  const authStore = useAuthStore()
+  const cartUi = useCartUiStore()
+
+  // ── Printer ────────────────────────────────────────────────────────────────
   const {
     print,
     printQueue,
@@ -30,73 +45,42 @@
     usbSupported
   } = useReceipt()
 
-  const { isCoffeeShop, isRestaurant } = useBuType()
-
-  const posStore = usePosStore()
-  const menuStore = useMenuStore()
-  const orderStore = useOrderStore()
-  const authStore = useAuthStore()
-  const cartUi = useCartUiStore()
-  const { isAdmin } = usePermission()
-
-  const router = useRouter()
-  const { t } = useI18n()
-  const { notif } = useAppUtils()
-
-  // ── Local state ────────────────────────────────────────────────────────────
-  const search = ref('')
-  const showQRDialog = ref(false)
-  const cashDialog = ref(false)
-  const user = ref(null)
-
-  // Print dialog state
-  const printDialog = ref(false)
-  const pendingPrints = ref(null)
-  const receipt = ref(null)
-
-  // ── Printer connection guard ───────────────────────────────────────────────
   const isAndroid = () => /android/i.test(navigator.userAgent)
 
   function isPrinterReady() {
     if (isAndroid() && usbSupported && !usbConnected.value) {
-      notif(t('printer.not_connected') || 'Please connect the printer first.', {
-        type: 'warning'
-      })
+      notif(t('printer.not_connected'), { type: 'warning' })
       return false
     }
     return true
   }
 
-  // ── Watch print errors ─────────────────────────────────────────────────────
   watch(printError, val => {
     if (!val) return
-    if (val === 'not_connected') {
-      notif(t('printer.not_connected') || 'Printer not connected.', { type: 'warning' })
-    } else if (val === 'disconnected') {
-      notif(t('printer.disconnected') || 'Printer disconnected.', { type: 'error' })
-    } else {
-      notif(val, { type: 'error' })
+    const msgMap = {
+      not_connected: t('printer.not_connected'),
+      disconnected: t('printer.disconnected')
     }
+    notif(msgMap[val] ?? val, {
+      type: val === 'disconnected' ? 'error' : 'warning'
+    })
   })
 
-  // ── Cart helpers ───────────────────────────────────────────────────────────
+  // ── Local state ────────────────────────────────────────────────────────────
+  const search = ref('')
+  const user = ref(null)
+  const showQRDialog = ref(false)
+  const cashDialog = ref(false)
+  const printDialog = ref(false)
+  const pendingPrints = ref(null)
+  const receipt = ref(null)
+
+  // ── Cart ───────────────────────────────────────────────────────────────────
   const activeItems = computed(() => posStore.activeItems)
   const subtotal = computed(() => posStore.subtotal)
   const total = computed(() => posStore.total)
 
-  // ── Checkout flow ──────────────────────────────────────────────────────────
-  async function handleCheckout() {
-    if (!activeItems.value.length) {
-      notif('Cart is empty!', { type: 'warning' })
-      return
-    }
-    if (posStore.paymentMethod === 'cash') {
-      cashDialog.value = true
-      return
-    }
-    await submitOrder()
-  }
-
+  // ── Order payload builder ──────────────────────────────────────────────────
   function buildPayload(extra = {}) {
     const type = posStore.selectedStore?.type
 
@@ -121,7 +105,7 @@
     return {
       cash_tendered: extra.cash_tendered ?? 0,
       change_given: extra.change_given ?? 0,
-      table_id: isCoffeeShop ? null : posStore.selectedTable?.id || null,
+      // table_id: isCoffeeStore.value ? null : posStore.selectedTable?.id || null,
       branch_id: authStore.branch_id,
       payment_method: posStore.paymentMethod,
       items: activeItems.value.map(i => ({
@@ -133,34 +117,44 @@
       }))
     }
   }
+  // ── Checkout ───────────────────────────────────────────────────────────────
+  async function handleCheckout() {
+    if (!activeItems.value.length) {
+      notif(t('cart.empty'), { type: 'warning' })
+      return
+    }
+    if (posStore.paymentMethod === 'cash') {
+      cashDialog.value = true
+      return
+    }
+    await submitOrder()
+  }
 
   async function submitOrder(extra = {}) {
-    const type = posStore.selectedStore?.type
-
     try {
       const res = await orderStore.createOrder(buildPayload(extra))
+      const data = res.data.data
 
-      if (type === 'hospitality') {
+      if (posStore.selectedStore?.type === 'hospitality') {
         await menuStore.fetchMenus()
       }
 
-      const data = res.data.data
       receipt.value = data
       pendingPrints.value = data.prints
 
       posStore.clearCart()
       printDialog.value = true
     } catch {
-      notif('Checkout failed. Please try again.', { type: 'error' })
+      notif(t('checkout.failed'), { type: 'error' })
     }
   }
 
-  const confirmCashPayment = async ({ cash_received, change }) => {
+  async function confirmCashPayment({ cash_received, change }) {
     cashDialog.value = false
     await submitOrder({ cash_tendered: cash_received, change_given: change })
   }
 
-  // ── Print dialog handlers ──────────────────────────────────────────────────
+  // ── Print ──────────────────────────────────────────────────────────────────
   async function handlePrint() {
     if (!isPrinterReady()) return
 
@@ -170,35 +164,41 @@
     try {
       if (prints.queue_ticket) await printQueue(prints.queue_ticket)
       if (prints.receipt) await print(prints.receipt)
-      closePrintDialog()
+      resetPrintState()
+      notif(t('notification.orderPlaced'), { type: 'success', timeout: 2000 })
     } catch (e) {
       console.error('[handlePrint]', e)
     }
   }
 
-  function closePrintDialog() {
+  // Skip print — no success notif, order was already placed
+  function skipPrint() {
+    resetPrintState()
+  }
+
+  function resetPrintState() {
     printDialog.value = false
     pendingPrints.value = null
     receipt.value = null
+    notif(t('notification.orderPlaced'), { type: 'success', timeout: 2000 })
   }
 
-  // ── Other handlers ─────────────────────────────────────────────────────────
+  // ── Bill & Auth ────────────────────────────────────────────────────────────
   async function handlePrintBill() {
     const res = await orderStore.printBillForPayment(posStore.orderId)
     if (res.status === 200) window.open(res.data.invoice_url, '_blank')
-    await orderStore.fetchAllOrders()
-    await posStore.clearBill()
+    await Promise.all([orderStore.fetchAllOrders(), posStore.clearBill()])
   }
 
   async function handleLogout() {
     await authStore.logout()
-    notif(t('messages.logoutSucess'), { type: 'success', color: 'primary' })
+    notif(t('messages.logoutSuccess'), { type: 'success', color: 'primary' })
     router.push({ name: 'login' })
   }
 
   const goToOrders = () => router.push({ name: 'pos.cashier' })
 
-  // ── On mount ───────────────────────────────────────────────────────────────
+  // ── Mount ──────────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
       await orderStore.fetchAllOrders()
@@ -246,12 +246,12 @@
   </v-main>
 
   <PosFooter
-    :connectUsb="connectUsb"
-    :usbConnected="usbConnected"
-    :usbSupported="usbSupported"
+    :connect-usb="connectUsb"
+    :usb-connected="usbConnected"
+    :usb-supported="usbSupported"
   />
 
-  <!-- DIALOGS -->
+  <!-- ── Dialogs ─────────────────────────────────────────────────────────── -->
   <OrderCustomizationDialog
     v-model="cartUi.showCustomizeDialog"
     :product="cartUi.selectedProduct"
@@ -275,10 +275,11 @@
     :usb-supported="usbSupported"
     :usb-connected="usbConnected"
     @print="handlePrint"
-    @skip="closePrintDialog"
+    @skip="skipPrint"
     @connect-usb="connectUsb"
   />
 </template>
+
 <style scoped>
   .mart-content {
     height: calc(100vh - 60px - 32px);

@@ -6,8 +6,9 @@
   import { useCartUiStore } from '@/stores/cartUiStore'
   import { useBuType } from '@/composables/useBuType'
   import { useI18n } from 'vue-i18n'
-  import { formatKHR } from '@nong-official-dev/core'
+  import { formatKHR ,useAppUtils } from '@nong-official-dev/core'
 
+  const { notif } = useAppUtils()
   const { t } = useI18n()
   const { isRestaurant, isCoffeeStore } = useBuType()
 
@@ -54,6 +55,7 @@
   function handleProductClick(product) {
     if (!product.variants?.length) {
       cartUi.handleQuickAdd(product)
+      notif(t('notification.addedToCart'), { type: 'success', color: 'primary', timeout: 900 })
     } else {
       cartUi.openCustomizer(product)
     }
@@ -71,7 +73,7 @@
 <template>
   <div>
     <div class="sticky-header px-4">
-      <div class="category-wrap pb-4">
+      <div class="category-wrap pb-3">
         <div v-if="isLoading" class="d-flex gap-3 overflow-hidden">
           <v-skeleton-loader
             v-for="n in 6"
