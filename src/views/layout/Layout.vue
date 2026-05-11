@@ -105,7 +105,7 @@
     return {
       cash_tendered: extra.cash_tendered ?? 0,
       change_given: extra.change_given ?? 0,
-      // table_id: isCoffeeStore.value ? null : posStore.selectedTable?.id || null,
+      table_id: isCoffeeShop.value ? null : posStore.selectedTable?.id || null,
       branch_id: authStore.branch_id,
       payment_method: posStore.paymentMethod,
       items: activeItems.value.map(i => ({
