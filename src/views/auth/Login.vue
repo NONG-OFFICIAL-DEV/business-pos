@@ -45,9 +45,7 @@
     try {
       const success = await store.loginByPin(pin.value)
       const path =
-        success.data.bu_type === 'restaurant'
-          ? '/pos/tables'
-          : '/pos/menu'
+        success.data.bu_type === 'restaurant' ? '/pos/tables' : '/pos/menu'
       router.push(path)
       notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
     } catch (err) {
@@ -77,9 +75,7 @@
       }
       if (success) {
         const path =
-          success.data.bu_type === 'restaurant'
-            ? '/pos/tables'
-            : '/pos/menu'
+          success.data.bu_type === 'restaurant' ? '/pos/tables' : '/pos/menu'
         router.push(path)
         notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
       }
@@ -112,7 +108,7 @@
 
         <div class="brand-text">
           <h1 class="brand-title">
-            Chamnaul
+            Nexstack
             <br />
             POS
           </h1>
@@ -264,11 +260,15 @@
 
         <!-- Error -->
         <v-expand-transition>
-          <div v-if="generalError" class="error-bar mt-4">
-            <v-icon icon="mdi-alert-circle-outline" size="16" />
-            {{ generalError }}
-            <button class="error-close" @click="generalError = ''">✕</button>
-          </div>
+          <v-alert
+            v-if="generalError"
+            type="error"
+            icon=""
+            :text="generalError"
+            closable
+            class="mt-4"
+          >
+          </v-alert>
         </v-expand-transition>
 
         <!-- Submit -->
