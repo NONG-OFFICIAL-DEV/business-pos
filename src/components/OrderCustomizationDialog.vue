@@ -16,14 +16,14 @@
   const orderType = ref('Dine-in')
   const { t } = useI18n()
 
-  const sugarOptions = [
+  const sugarOptions = computed(() => [
     { label: t('label.no_sugar'), value: 0 },
     { label: '25%', value: 25 },
     { label: '50%', value: 50 },
     { label: '70%', value: 70 },
     { label: '100%', value: 100 },
     { label: t('order.custom_sugar'), value: 'custom' }
-  ]
+  ])
 
   const selectedSugarDisplay = computed(() => {
     if (isCustomSugar.value) return `${customSugar.value}%`
