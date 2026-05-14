@@ -70,16 +70,15 @@
       </div>
       <div class="d-flex flex-column d-none d-sm-flex">
         <span class="brand-title">
-          QUICK
+          Nexstack
           <span class="brand-accent">POS</span>
         </span>
         <div class="d-flex align-center mt-n1">
-          <span class="station-label">STATION 01</span>
           <v-chip
             size="x-small"
             variant="flat"
             color="brown-lighten-5"
-            class="ml-2 font-weight-bold text-brown"
+            class="font-weight-bold text-brown"
           >
             {{ branchName }}
           </v-chip>
@@ -224,13 +223,6 @@
   .brand-accent {
     color: #8d6e63; /* Latte color */
     margin-left: 2px;
-  }
-
-  .station-label {
-    font-size: 0.65rem;
-    font-weight: 900;
-    color: #a1887f;
-    letter-spacing: 0.05em;
   }
 
   /* ── Search Bar ── */

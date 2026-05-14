@@ -2,20 +2,15 @@
   import { formatTimeAgo } from '@nong-official-dev/core'
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
-  import { usePosStore } from '@/stores/posStore'
+  import { useBuType } from '@/composables/useBuType'
+
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
   const route = useRoute()
-  const posStore = usePosStore()
+  const { isCoffeeShop, isRestaurant } = useBuType()
 
   const isUnpaidOrderPage = computed(() => route.meta.showDrawer === 4)
-  const isCoffeeStore = computed(
-    () => posStore.selectedStore?.type === 'coffee'
-  )
-  const isRestaurant = computed(
-    () => posStore.selectedStore?.type === 'hospitality'
-  )
 
   const props = defineProps({
     isHospitality: Boolean,
@@ -37,10 +32,12 @@
     class="cart-header px-4 py-3 border-b d-flex align-center justify-space-between"
   >
     <div>
-      <div class="text-subtitle-2 font-weight-black">{{ t('order.title') }}</div>
+      <div class="text-subtitle-2 font-weight-black">
+        {{ t('order.title') }}
+      </div>
 
-      <div v-if="isCoffeeStore" class="text-caption text-medium-emphasis">
-        {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
+      <div v-if="isCoffeeShop" class="text-caption text-medium-emphasis">
+        {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
       </div>
 
       <template v-else-if="isRestaurant">
@@ -49,13 +46,13 @@
             T-{{ table.table_number }}
           </v-chip>
           <span class="text-caption text-medium-emphasis">
-            {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
+            {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
           </span>
         </div>
       </template>
 
       <div v-else class="text-caption text-medium-emphasis">
-        {{ count }} {{t('order.item')}}{{ count !== 1 ? 's' : '' }}
+        {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
       </div>
     </div>
 
@@ -91,7 +88,7 @@
           class="text-none font-weight-bold"
           @click="$emit('clearBill')"
         >
-          {{t('btn.clear')}}
+          {{ t('btn.clear') }}
         </v-btn>
       </div>
 
@@ -103,7 +100,7 @@
           class="font-weight-bold"
         >
           <v-icon start icon="mdi-pound" size="14" />
-           T-{{ itemInformations.dining_table?.table_number }}
+          T-{{ itemInformations.dining_table?.table_number }}
         </v-chip>
         <v-chip
           size="small"
@@ -121,7 +118,7 @@
           class="font-weight-bold"
         >
           <v-icon start icon="mdi-package-variant-closed" size="14" />
-          {{ count }} {{t('order.item')}}
+          {{ count }} {{ t('order.item') }}
         </v-chip>
       </div>
     </div>

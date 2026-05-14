@@ -12,14 +12,14 @@
       <div v-if="usbSupported" class="d-flex align-center gap-1">
         <template v-if="usbConnected">
           <v-icon icon="mdi-printer-check" size="14" color="success" />
-          <span class="footer-text">PRINTER READY</span>
+          <span class="footer-text">{{ $t('footer.ready') }}</span>
         </template>
         <template v-else>
           <v-icon icon="mdi-printer-off" size="14" color="warning" />
           <span
             class="footer-text footer-link"
             @click="connectUsb"
-          >CONNECT PRINTER</span>
+          >{{ $t('footer.printer') }}</span>
         </template>
       </div>
 

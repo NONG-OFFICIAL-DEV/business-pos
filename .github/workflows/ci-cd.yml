@@ -31,7 +31,7 @@ jobs:
             --build-arg GITHUB_TOKEN=${{ secrets.NPM_TOKEN }} \
             --build-arg VITE_APP_MODE=Production \
             --build-arg VITE_APP_API_BASE_URL=${{ secrets.APP_API_BASE_URL }} \
-            --build-arg VITE_APP_I18N_LOCALE=en \
+            --build-arg VITE_APP_I18N_LOCALE=km \
             --build-arg VITE_APP_I18N_FALLBACK_LOCALE=en \
             --build-arg VITE_APP_API_BASE_AI_URL=${{ secrets.AI_API_URL }} \
             --build-arg VITE_REVERB_APP_KEY=${{ secrets.VITE_REVERB_APP_KEY }} \

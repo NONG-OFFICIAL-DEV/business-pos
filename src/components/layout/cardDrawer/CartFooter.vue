@@ -70,7 +70,7 @@
         >
           <v-icon icon="mdi-tag-outline" size="14" class="mr-1" />
           <span class="text-caption font-weight-bold underline-dashed">
-            {{ discount > 0 ? t('btn.edit_discount') : t('btn.discount') }}
+            {{ discount > 0 ? t('label.edit_discount') : t('label.discount') }}
           </span>
         </div>
         <span

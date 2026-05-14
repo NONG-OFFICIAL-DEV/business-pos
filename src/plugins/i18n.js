@@ -50,7 +50,7 @@ function loadLocaleMessages() {
 
 const i18n = createI18n({
   legacy: false, // for Vue 3, set to false
-  locale: import.meta.env.VUE_APP_I18N_LOCALE || 'en',
+  locale: import.meta.env.VITE_APP_I18N_LOCALE || 'km',
   fallbackLocale: import.meta.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
   messages: loadLocaleMessages(),
   dateTimeFormats

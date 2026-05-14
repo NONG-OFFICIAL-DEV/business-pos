@@ -38,6 +38,7 @@
     "total": "Total",
     "subtotal": "Subtotal",
     "discount": "Discount",
+    "edit_discount": "Edit Discount",
     "tax": "Tax",
     "grand_total": "Grand Total",
     "cash": "Cash",
@@ -207,10 +208,14 @@
     "confirm": "Confirm Discount"
   },
   "login": {
-    "title":"Sign in to continue",
+    "title": "Sign in to continue",
     "subtitle": "Enter credentials to access your station",
     "pin_code": "Pin code",
     "password": "Password",
     "email": "Email"
+  },
+  "footer": {
+    "printer": "PRINTER CONNECTED",
+    "ready": "READY TO PRINT"
   }
 }
