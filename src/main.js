@@ -7,14 +7,12 @@ import i18n from "./plugins/i18n"
 import "./style.css"
 import axios from 'axios'
 import CustomTitle from "./components/global/CustomTitle.vue";
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 //register global core plugin
 import {CorePlugin} from '@nong-official-dev/core'
 
 
 const app = createApp(App)
 const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
 
 // disabled double click zoom
 let lastTouchEnd = 0
