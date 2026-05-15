@@ -90,21 +90,13 @@
 </script>
 
 <template>
-  <v-container fluid class="pa-0">
+  <v-container fluid class="pa-4">
     <!-- ─── STICKY HEADER ───────────────────────────────────────────── -->
     <div class="sticky-header">
       <!-- Title row -->
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="d-flex align-center gap-2">
-          <v-btn
-            variant="tonal"
-            color="primary"
-            size="x-small"
-            icon="mdi-arrow-left"
-            class="text-none"
-            text="Back"
-            @click="$router.go(-1)"
-          />
+    
           <div>
             <div class="text-subtitle-1 font-weight-black text-slate-800 lh-1">
               Unpaid Orders

@@ -7,9 +7,6 @@ export const useDiningTableStore = defineStore('diningTable', {
   }),
 
   actions: {
-    /* -------------------------
-      FETCH ALL TABLES
-    --------------------------*/
     async fetchTables(params = {}) {
       const res = await tableService.getAllTables(params)      
       this.tables = res.data.data.data

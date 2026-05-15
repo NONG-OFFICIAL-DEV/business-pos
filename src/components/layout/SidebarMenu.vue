@@ -56,14 +56,14 @@
       tooltip: 'Tables',
       icon: 'mdi-table-chair',
       value: 'Dining Table',
-      to: '/pos/dining-table-view',
+      to: '/pos/tables',
       premium: false
     },
     {
       tooltip: 'Menu',
       icon: 'mdi-book-open-outline',
       value: 'Menu List',
-      to: '/pos/menu-list',
+      to: '/pos/menu',
       premium: false
     },
     {

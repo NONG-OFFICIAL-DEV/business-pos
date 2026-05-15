@@ -3,7 +3,6 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useAppUtils } from '@nong-official-dev/core'
-  import { usePermission } from '@/composables/usePermission'
   import { usePosStore } from '@/stores/posStore'
   import { useMenuStore } from '@/stores/menuStore'
   import { useOrderStore } from '@/stores/orderStore'
@@ -24,7 +23,6 @@
   const { t } = useI18n()
   const { notif } = useAppUtils()
   const { isCoffeeShop, isRestaurant } = useBuType()
-  const { isAdmin } = usePermission()
   const router = useRouter()
 
   // ── Stores ─────────────────────────────────────────────────────────────────
@@ -82,9 +80,7 @@
 
   // ── Order payload builder ──────────────────────────────────────────────────
   function buildPayload(extra = {}) {
-    const type = posStore.selectedStore?.type
-
-    if (type === 'coffee') {
+    if (isCoffeeShop.value) {
       return {
         cash_tendered: extra.cash_tendered ?? 0,
         change_given: extra.change_given ?? 0,
@@ -201,7 +197,9 @@
   // ── Mount ──────────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
-      await orderStore.fetchAllOrders()
+      if (isRestaurant.value) {
+        await orderStore.fetchAllOrders()
+      }
       user.value = authStore.me
     } catch {
       await authStore.logout()
@@ -221,7 +219,7 @@
     @orders="goToOrders"
   />
 
-  <SidebarMenu v-if="isAdmin || isRestaurant" />
+  <SidebarMenu v-if="isRestaurant" />
 
   <PosCartDrawer
     :items="activeItems"

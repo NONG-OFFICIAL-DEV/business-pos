@@ -74,7 +74,7 @@
         <div class="text-subtitle-2 font-weight-black">
           {{
             isHospitality
-              ? `Order #${itemInformations.order_number}`
+              ? `#${itemInformations.order_number}`
               : 'Current Order'
           }}
         </div>
@@ -84,12 +84,9 @@
           color="error"
           size="small"
           rounded="lg"
-          prepend-icon="mdi-close"
-          class="text-none font-weight-bold"
+          icon="mdi-delete-sweep"
           @click="$emit('clearBill')"
-        >
-          {{ t('btn.clear') }}
-        </v-btn>
+        ></v-btn>
       </div>
 
       <div class="d-flex flex-wrap" style="gap: 6px">

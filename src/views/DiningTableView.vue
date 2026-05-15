@@ -1,7 +1,6 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  import { usePermission } from '@/composables/usePermission'
   import { useDiningTableStore } from '@/stores/diningTableStore'
   import { usePosStore } from '@/stores/posStore'
   import { useAppUtils } from '@/composables/useAppUtils'
@@ -9,7 +8,6 @@
 
   const { t } = useI18n()
   const router = useRouter()
-  const { isAdmin, isManager } = usePermission()
   const { notif } = useAppUtils()
   const posStore = usePosStore()
   const tableStore = useDiningTableStore()
@@ -80,7 +78,7 @@
 </script>
 
 <template>
-  <v-container fluid class="pa-0">
+  <v-container fluid class="pa-4">
     <custom-title icon="mdi-table-chair">
       Floor Plan
 

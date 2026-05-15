@@ -8,11 +8,6 @@ export const menuService = {
       meta: { loader: 'skeleton' }
     })
   },
-  // fetchProducts(params) {
-  //   return http.get('/v1/mart/pos/products', {
-  //     params
-  //   })
-  // }
   fetchProducts(params) {
     return http.get('/v1/hospitality/pos/products', {
       params

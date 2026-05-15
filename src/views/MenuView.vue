@@ -6,7 +6,7 @@
   import { useCartUiStore } from '@/stores/cartUiStore'
   import { useBuType } from '@/composables/useBuType'
   import { useI18n } from 'vue-i18n'
-  import { formatKHR ,useAppUtils } from '@nong-official-dev/core'
+  import { formatKHR, useAppUtils } from '@nong-official-dev/core'
 
   const { notif } = useAppUtils()
   const { t } = useI18n()
@@ -55,7 +55,11 @@
   function handleProductClick(product) {
     if (!product.variants?.length) {
       cartUi.handleQuickAdd(product)
-      notif(t('notification.addedToCart'), { type: 'success', color: 'primary', timeout: 900 })
+      notif(t('notification.addedToCart'), {
+        type: 'success',
+        color: 'primary',
+        timeout: 900
+      })
     } else {
       cartUi.openCustomizer(product)
     }
@@ -73,53 +77,58 @@
 <template>
   <div>
     <div class="sticky-header px-4">
-      <div class="category-wrap pb-3">
-        <div v-if="isLoading" class="d-flex gap-3 overflow-hidden">
+      <div>
+        <div v-if="isLoading" class="d-flex gap-3 overflow-hidden py-2">
           <v-skeleton-loader
             v-for="n in 6"
             :key="n"
-            type="button"
-            width="90"
-            class="rounded-pill"
+            type="text"
+            width="100"
+            class="rounded-xl me-2 mt-2"
           />
         </div>
-  
+
         <v-slide-group
           v-else
           v-model="selectedCategory"
           mandatory
           show-arrows
-          class="category-slider"
+          class="py-2"
         >
           <v-slide-group-item v-slot="{ isSelected, toggle }" value="All">
-            <button
-              :class="['cat-pill', { active: isSelected }]"
+            <v-btn
+              :class="['cat-pill text-none', { active: isSelected }]"
+              rounded="xl"
+              elevation="0"
+              size="larg"
               @click="toggle"
             >
               <v-icon size="16">mdi-apps</v-icon>
               <span>{{ t('label.all_items') }}</span>
-            </button>
+            </v-btn>
           </v-slide-group-item>
-  
+
           <v-slide-group-item
             v-for="cat in menuCategoryStore.categories"
             :key="cat.id"
             :value="cat.id"
             v-slot="{ isSelected, toggle }"
           >
-            <button
-              :class="['cat-pill', { active: isSelected }]"
+            <v-btn
+              :class="['cat-pill text-none', { active: isSelected }]"
+              rounded="xl"
+              elevation="0"
+              size="larg"
               @click="toggle"
             >
               <v-icon v-if="cat.icon" size="16">{{ cat.icon }}</v-icon>
               <span>{{ cat.name }}</span>
-            </button>
+            </v-btn>
           </v-slide-group-item>
         </v-slide-group>
       </div>
     </div>
     <v-container fluid class="pos-menu-view pa-4">
-  
       <!-- Loading skeleton -->
       <v-row v-if="isLoading" dense class="product-grid">
         <v-col v-for="n in 8" :key="n" cols="6" sm="4" md="3" lg="3">
@@ -137,7 +146,7 @@
           </div>
         </v-col>
       </v-row>
-  
+
       <!-- Empty state -->
       <div v-else-if="filteredProducts.length === 0" class="empty-state">
         <v-avatar color="brown-lighten-5" size="80" class="mb-4">
@@ -160,7 +169,7 @@
           Clear Filter
         </v-btn>
       </div>
-  
+
       <!-- Product grid -->
       <v-row v-else dense class="product-grid">
         <v-col
@@ -174,17 +183,27 @@
           <v-card
             :ripple="product.is_available !== false"
             flat
+            rounded="xl"
             :class="[
               'product-card',
               { 'is-unavailable': product.is_available === false }
             ]"
-            @click="product.is_available !== false && handleProductClick(product)"
+            @click="
+              product.is_available !== false && handleProductClick(product)
+            "
           >
             <div class="img-container">
               <v-img :src="product.image_url" cover class="product-img">
                 <template #placeholder>
-                  <v-row class="fill-height ma-0" align="center" justify="center">
-                    <v-progress-circular indeterminate color="brown-lighten-4" />
+                  <v-row
+                    class="fill-height ma-0"
+                    align="center"
+                    justify="center"
+                  >
+                    <v-progress-circular
+                      indeterminate
+                      color="brown-lighten-4"
+                    />
                   </v-row>
                 </template>
                 <template #error>
@@ -195,7 +214,7 @@
                   </div>
                 </template>
               </v-img>
-  
+
               <v-chip
                 v-if="product.variants?.length > 0"
                 size="x-small"
@@ -206,7 +225,7 @@
                 <v-icon icon="mdi-tune" size="10" class="mr-1" />
                 {{ t('menu.options') }}
               </v-chip>
-  
+
               <div v-if="product.is_available === false" class="status-overlay">
                 <v-chip
                   color="black"
@@ -217,16 +236,16 @@
                   SOLD OUT
                 </v-chip>
               </div>
-  
+
               <div v-else-if="product.has_variants" class="variant-chip">
                 <v-icon size="10" class="mr-1">mdi-tune</v-icon>
                 CUSTOMIZABLE
               </div>
             </div>
-  
+
             <v-card-item class="pa-3">
               <div class="product-name">{{ product.name }}</div>
-  
+
               <div class="d-flex align-center justify-space-between mt-2">
                 <div class="price-stack">
                   <span class="price-text">
@@ -240,7 +259,7 @@
                     }}
                   </span>
                 </div>
-  
+
                 <v-btn
                   :color="
                     product.variants?.length > 0
@@ -274,12 +293,6 @@
   </div>
 </template>
 
-<style>
-  .v-slide-group__content {
-    padding-top: 12px;
-  }
-</style>
-
 <style scoped>
   .pos-menu-view {
     position: relative;
@@ -290,10 +303,9 @@
     top: 0px;
     z-index: 10;
     background: rgba(248, 250, 252, 0.95);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(80px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid #e2e8f0;
-    /* background: linear-gradient(to bottom, #fdfbf9 80%, rgba(253, 251, 249, 0)); */
   }
 
   .cat-pill {
@@ -302,7 +314,6 @@
     gap: 8px;
     padding: 10px 20px;
     margin: 0 4px;
-    border-radius: 100px;
     background: #fff;
     border: 1px solid #eeeae5;
     color: #6d4c41;
@@ -324,7 +335,6 @@
   }
 
   .product-card {
-    border-radius: 20px !important;
     background: #ffffff !important;
     border: 1px solid #f0ece8 !important;
     transition: all 0.25s ease;
@@ -487,5 +497,10 @@
   :deep(.v-skeleton-loader__bone) {
     background: #ede8e3 !important;
     border-radius: 8px;
+  }
+</style>
+<style>
+  .v-slide-group__content {
+    padding: 5px 0px;
   }
 </style>
