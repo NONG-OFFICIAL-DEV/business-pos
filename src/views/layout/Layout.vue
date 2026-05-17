@@ -214,10 +214,10 @@
     :user="user"
     :roleName="authStore.roleName"
     :branchName="authStore.branch_name"
-    :content="orderStore.unpaidCount"
     @logout="handleLogout"
     @orders="goToOrders"
-  />
+    />
+    <!-- :content="orderStore.unpaidCount" -->
 
   <SidebarMenu v-if="isRestaurant" />
 
@@ -236,7 +236,7 @@
       <div class="mart-content">
         <router-view v-slot="{ Component }">
           <transition name="slide-fade" mode="out-in">
-            <component :is="Component" v-if="Component" />
+            <component :is="Component" v-if="Component" :search="search"/>
           </transition>
         </router-view>
       </div>

@@ -8,8 +8,7 @@
     search: String,
     user: Object,
     roleName: String,
-    branchName: String,
-    content: [String, Number]
+    branchName: String
   })
 
   const emit = defineEmits(['update:search', 'update:store', 'logout'])
