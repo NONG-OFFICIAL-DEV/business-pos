@@ -93,17 +93,12 @@
           prepend-inner-icon="mdi-magnify"
           :placeholder="t('menu.search_placeholder')"
           hide-details
-          density="compact"
           variant="solo"
           flat
           class="search-input"
           rounded="lg"
+          clearable
         >
-          <template v-slot:append-inner>
-            <v-icon size="20" color="brown-lighten-3" class="cursor-pointer">
-              mdi-barcode-scan
-            </v-icon>
-          </template>
         </v-text-field>
       </v-responsive>
     </v-app-bar-title>
