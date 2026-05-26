@@ -305,7 +305,6 @@
     height: 100vh;
     min-height: 0;
     overflow: hidden;
-    font-family: 'DM Sans', 'Segoe UI', sans-serif;
     background: #0f172a;
   }
 
