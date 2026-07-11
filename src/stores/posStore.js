@@ -11,7 +11,8 @@ export const usePosStore = defineStore('pos', () => {
   const cart = ref([])
   const paymentMethod = ref('cash')
   const orderId = ref(null)
-  const discount = ref(0)
+  const discountType = ref('fixed') // 'percentage' | 'fixed'
+  const discountValue = ref(0)
   const { t } = useI18n()
 
   const stores = [
@@ -19,11 +20,11 @@ export const usePosStore = defineStore('pos', () => {
     { id: 2, name: 'Restaurant', type: 'hospitality' }
   ]
 
-  const paymentMethods = [
+  const paymentMethods = computed(() => [
     { id: 'cash', icon: 'mdi-cash', label: t('payment.cash') },
     { id: 'qr', icon: 'mdi-qrcode-scan', label: t('payment.qr') },
     { id: 'card', icon: 'mdi-credit-card-outline', label: t('payment.card') }
-  ]
+  ])
 
   const selectedStore = ref(stores[1])
   const selectedTable = ref(null)
@@ -43,6 +44,15 @@ export const usePosStore = defineStore('pos', () => {
     activeItems.value.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
   )
 
+  // Recomputed from type/value so it stays correct as the cart changes
+  const discount = computed(() => {
+    if (!discountValue.value) return 0
+    if (discountType.value === 'percentage') {
+      return (subtotal.value * discountValue.value) / 100
+    }
+    return discountValue.value
+  })
+
   // Subtract the discount from subtotal
   const total = computed(() => {
     const result = subtotal.value - discount.value
@@ -52,9 +62,14 @@ export const usePosStore = defineStore('pos', () => {
   /** -------------------
    * ACTIONS
    * ------------------- */
-  function setDiscount(amount) {
-    // Use the ref directly instead of 'this'
-    discount.value = amount
+  function applyDiscount({ type, value }) {
+    discountType.value = type
+    discountValue.value = value
+  }
+
+  function clearDiscount() {
+    discountType.value = 'fixed'
+    discountValue.value = 0
   }
 
   function selectStore(store) {
@@ -114,7 +129,7 @@ export const usePosStore = defineStore('pos', () => {
 
   function clearCart() {
     cart.value = []
-    discount.value = 0
+    clearDiscount()
     paymentMethod.value = 'cash'
   }
 
@@ -128,6 +143,8 @@ export const usePosStore = defineStore('pos', () => {
     cart,
     paymentMethod,
     orderId,
+    discountType,
+    discountValue,
     stores,
     paymentMethods,
     selectedStore,
@@ -143,7 +160,8 @@ export const usePosStore = defineStore('pos', () => {
 
     /** actions */
     selectStore,
-    setDiscount,
+    applyDiscount,
+    clearDiscount,
     selectTable,
     clearTable,
     selectBill,

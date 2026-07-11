@@ -1,14 +1,139 @@
+<script setup>
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { useOrderStore } from '@/stores/orderStore'
+  import { formatTimeAgo, useAppUtils } from '@nong-official-dev/core'
+  import { useI18n } from 'vue-i18n'
+  import echo from '@/utils/echo'
+
+  const { t } = useI18n()
+  const { confirm } = useAppUtils()
+  const orderStore = useOrderStore()
+
+  // Local-only: no backend endpoint exists yet to persist a "served" status
+  // (src/api/order.js only has getAllOrder/createOrder/getOrderByTable/printBillForPayment),
+  // so marking a ticket done just hides it from this KDS session.
+  const servedIds = ref(new Set())
+  const connected = ref(false)
+  let tickTimer = null
+  const tick = ref(0)
+
+  const orders = computed(() => orderStore.orders || [])
+
+  const activeOrders = computed(() => {
+    tick.value
+    return orders.value
+      .filter(o => !servedIds.value.has(o.order_id))
+      .slice()
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  })
+
+  function elapsedMinutes(createdAt) {
+    return Math.max(0, Math.floor((Date.now() - new Date(createdAt)) / 60000))
+  }
+
+  function urgencyColor(createdAt) {
+    const mins = elapsedMinutes(createdAt)
+    if (mins <= 10) return 'success'
+    if (mins <= 20) return 'warning'
+    return 'error'
+  }
+
+  function markServed(order) {
+    confirm({
+      title: t('dialog.confirm_mark_served'),
+      options: { type: 'info' },
+      agree: () => {
+        servedIds.value = new Set(servedIds.value).add(order.order_id)
+      }
+    })
+  }
+
+  onMounted(async () => {
+    await orderStore.fetchAllOrders()
+    orderStore.subscribeToOrders()
+
+    const connection = echo.connector.pusher.connection
+    connected.value = connection.state === 'connected'
+    connection.bind('connected', () => (connected.value = true))
+    connection.bind('disconnected', () => (connected.value = false))
+
+    tickTimer = setInterval(() => tick.value++, 30000)
+  })
+
+  onUnmounted(() => {
+    orderStore.unsubscribeFromOrders()
+    clearInterval(tickTimer)
+  })
+</script>
+
 <template>
-  <v-container fluid>
-    <v-row dense>
-      <v-col v-for="order in activeOrders" :key="order.id">
-        <v-card>
-          <v-toolbar :color="getTimeColor(order.minutes)" density="compact">
+  <v-container fluid class="pa-4">
+    <div class="d-flex align-center justify-space-between mb-3">
+      <div class="text-subtitle-1 font-weight-black">
+        {{ t('kitchen.title') }}
+      </div>
+      <div class="d-flex align-center gap-2">
+        <div class="text-caption text-grey">
+          {{ activeOrders.length }} {{ t('kitchen.active_orders') }}
+        </div>
+        <v-chip
+          :color="connected ? 'success' : 'error'"
+          variant="tonal"
+          size="x-small"
+          class="font-weight-bold"
+        >
+          <template #prepend>
+            <v-icon size="8" class="mr-1">mdi-circle</v-icon>
+          </template>
+          {{ connected ? 'Live' : 'Reconnecting…' }}
+        </v-chip>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <v-row v-if="orderStore.loading" dense>
+      <v-col v-for="n in 4" :key="n" cols="12" sm="6" md="4" lg="3">
+        <v-skeleton-loader type="card" rounded="xl" />
+      </v-col>
+    </v-row>
+
+    <!-- Empty state -->
+    <div
+      v-else-if="activeOrders.length === 0"
+      class="d-flex flex-column align-center justify-center pa-16 text-grey"
+    >
+      <v-icon size="64" class="mb-4" color="grey-lighten-2">
+        mdi-food-outline
+      </v-icon>
+      <div class="text-subtitle-1 font-weight-bold mb-1">
+        {{ t('kitchen.no_orders') }}
+      </div>
+      <div class="text-caption">{{ t('kitchen.no_orders_sub') }}</div>
+    </div>
+
+    <!-- Tickets -->
+    <v-row v-else dense>
+      <v-col
+        v-for="order in activeOrders"
+        :key="order.order_id"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+      >
+        <v-card rounded="xl" border elevation="0" class="d-flex flex-column">
+          <v-toolbar
+            :color="urgencyColor(order.created_at)"
+            density="compact"
+          >
             <v-toolbar-title class="text-subtitle-2 font-weight-bold">
-              TABLE {{ order.table_no }} • #{{ order.id }}
+              {{ order.table ? `T-${order.table}` : t('order_type.takeaway') }}
+              • #{{ order.order_id }}
             </v-toolbar-title>
             <v-spacer />
-            <span class="me-2">{{ order.minutes }}m</span>
+            <span class="me-2 text-caption font-weight-bold">
+              {{ formatTimeAgo(order.created_at) }}
+            </span>
           </v-toolbar>
 
           <v-list class="flex-grow-1 pa-0" density="comfortable">
@@ -17,30 +142,31 @@
               :key="item.id"
               border="bottom"
             >
-              <template v-slot:prepend>
+              <template #prepend>
                 <span class="font-weight-black text-h6 me-3">
-                  {{ item.qty }}x
+                  {{ item.quantity }}x
                 </span>
               </template>
               <v-list-item-title class="font-weight-bold">
-                {{ item.name }}
+                {{ item.product_name }}
               </v-list-item-title>
               <v-list-item-subtitle
-                v-if="item.note"
-                class="text-error font-italic"
+                v-if="item.customizations && Object.keys(item.customizations).length"
+                class="text-brown-darken-1 font-italic"
               >
-                * {{ item.note }}
+                {{ Object.values(item.customizations).join(', ') }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
 
           <v-btn
             block
-            color="success"
-            class="rounded-0"
-            @click="completeOrder(order.id)"
+            color="primary"
+            class="rounded-0 rounded-b-xl"
+            height="48"
+            @click="markServed(order)"
           >
-            DONE / SERVED
+            {{ t('kitchen.done') }}
           </v-btn>
         </v-card>
       </v-col>
@@ -48,56 +174,8 @@
   </v-container>
 </template>
 
-<script setup>
-  import { ref } from 'vue'
-
-  const getTimeColor = minutes => {
-    if (minutes <= 10) return 'green darken-1'
-    if (minutes <= 20) return 'orange darken-1'
-    return 'red darken-1'
+<style scoped>
+  .gap-2 {
+    gap: 8px;
   }
-
-  const completeOrder = orderId => {
-    alert(`Order #${orderId} marked as completed!`)
-    // Here you would typically update the order status in your store or backend
-  }
-  const activeOrders = ref([
-    {
-      id: 101,
-      table_no: 'T1',
-      minutes: 12,
-      items: [
-        { id: 1, name: 'Cappuccino', qty: 2, note: '' },
-        { id: 2, name: 'Blueberry Muffin', qty: 1, note: 'No sugar' }
-      ]
-    },
-    {
-      id: 102,
-      table_no: 'T3',
-      minutes: 5,
-      items: [
-        { id: 3, name: 'Espresso', qty: 1, note: '' },
-        { id: 4, name: 'Croissant', qty: 2, note: '' }
-      ]
-    },
-    {
-      id: 103,
-      table_no: 'T5',
-      minutes: 20,
-      items: [
-        { id: 5, name: 'Latte', qty: 1, note: 'Extra hot' },
-        { id: 6, name: 'Ham Sandwich', qty: 1, note: 'No mayo' },
-        { id: 7, name: 'Orange Juice', qty: 2, note: '' }
-      ]
-    },
-    {
-      id: 104,
-      table_no: 'T2',
-      minutes: 8,
-      items: [
-        { id: 8, name: 'Americano', qty: 1, note: '' },
-        { id: 9, name: 'Bagel', qty: 1, note: 'With cream cheese' }
-      ]
-    }
-  ])
-</script>
+</style>

@@ -27,10 +27,13 @@
     app.config.globalProperties.$notif = notifRef.value?.newAlert
     app.config.globalProperties.$confirm = confirmRef.value?.open
 
-    // Restore saved language preference
+    // Restore saved language preference (single owner — LanguageSwicher only writes it)
     const savedLang = localStorage.getItem('lang')
     if (savedLang) {
       instance.appContext.config.globalProperties.$i18n.locale = savedLang
+      if (instance.proxy?.$vuetify?.locale) {
+        instance.proxy.$vuetify.locale.current = savedLang
+      }
     }
   })
 </script>

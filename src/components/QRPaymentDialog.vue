@@ -1,28 +1,71 @@
 <script setup>
-const props = defineProps({
-  modelValue: Boolean,
-  total: Number
-})
-const emit = defineEmits(['update:modelValue'])
+  import { computed } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { formatKHR } from '@nong-official-dev/core'
 
-function close() {
-  emit('update:modelValue', false)
-}
+  const { t } = useI18n()
+
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    total: { type: Number, default: 0 },
+    loading: { type: Boolean, default: false }
+  })
+
+  const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
+
+  const model = computed({
+    get: () => props.modelValue,
+    set: val => emit('update:modelValue', val)
+  })
+
+  const confirm = () => emit('confirm')
+
+  const cancel = () => {
+    emit('cancel')
+    model.value = false
+  }
 </script>
 
 <template>
-  <v-dialog v-model="props.modelValue" max-width="450" transition="scale-transition">
-    <v-card rounded="xl" class="text-center pa-6">
-      <div class="text-h5 font-weight-black mb-1">Scan to Pay</div>
-      <div class="text-body-2 text-grey mb-6">Total Amount: ${{ props.total.toFixed(2) }}</div>
+  <v-dialog v-model="model" max-width="380" persistent>
+    <v-card rounded="xl" class="pa-5 text-center">
+      <div class="text-h6 font-weight-black mb-1">
+        {{ t('payment.scan_to_pay') }}
+      </div>
+      <div class="text-caption text-medium-emphasis mb-4">
+        {{ t('label.total') }}: {{ formatKHR(total) }}
+      </div>
 
-      <v-sheet border rounded="xl" class="pa-4 mx-auto mb-6" max-width="300">
-        <v-img src="https://www.masskh.com/wp-content/uploads/2023/11/photo1700496472-568x800.jpeg" rounded="lg" width="500px" />
-      </v-sheet>
+      <div class="qr-placeholder mx-auto mb-6">
+        <v-icon icon="mdi-qrcode" size="120" color="brown-darken-3" />
+      </div>
 
-      <v-btn block color="primary" size="large" rounded="pill" @click="close">
-        Done / Close
-      </v-btn>
+      <div class="d-flex ga-2">
+        <v-btn variant="outlined" class="flex-grow-1" @click="cancel">
+          {{ t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          color="primary"
+          class="flex-grow-1"
+          :loading="loading"
+          @click="confirm"
+        >
+          {{ t('payment.payment_received') }}
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+  .qr-placeholder {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f5f2;
+    border: 1px dashed #d7ccc8;
+    border-radius: 16px;
+  }
+</style>

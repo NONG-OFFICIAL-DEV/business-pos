@@ -75,7 +75,6 @@
 
   // ── Cart ───────────────────────────────────────────────────────────────────
   const activeItems = computed(() => posStore.activeItems)
-  const subtotal = computed(() => posStore.subtotal)
   const total = computed(() => posStore.total)
 
   // ── Order payload builder ──────────────────────────────────────────────────
@@ -123,6 +122,15 @@
       cashDialog.value = true
       return
     }
+    if (posStore.paymentMethod === 'qr') {
+      showQRDialog.value = true
+      return
+    }
+    await submitOrder()
+  }
+
+  async function confirmQrPayment() {
+    showQRDialog.value = false
     await submitOrder()
   }
 
@@ -161,7 +169,6 @@
       if (prints.queue_ticket) await printQueue(prints.queue_ticket)
       if (prints.receipt) await print(prints.receipt)
       resetPrintState()
-      notif(t('notification.orderPlaced'), { type: 'success', timeout: 2000 })
     } catch (e) {
       console.error('[handlePrint]', e)
     }
@@ -192,7 +199,7 @@
     router.push({ name: 'login' })
   }
 
-  const goToOrders = () => router.push({ name: 'pos.cashier' })
+  const goToOrders = () => router.push({ name: 'Orders' })
 
   // ── Mount ──────────────────────────────────────────────────────────────────
   onMounted(async () => {
@@ -221,15 +228,7 @@
 
   <SidebarMenu v-if="isRestaurant" />
 
-  <PosCartDrawer
-    :items="activeItems"
-    :subtotal="subtotal"
-    :total="total"
-    :payment-method="posStore.paymentMethod"
-    :payment-methods="posStore.paymentMethods"
-    @checkout="handleCheckout"
-    @print-bill="handlePrintBill"
-  />
+  <PosCartDrawer @checkout="handleCheckout" @print-bill="handlePrintBill" />
 
   <v-main>
     <v-container class="pa-0" fluid>
@@ -264,7 +263,12 @@
     @cancel="cashDialog = false"
   />
 
-  <QRPaymentDialog v-model="showQRDialog" :total="total" />
+  <QRPaymentDialog
+    v-model="showQRDialog"
+    :total="total"
+    @confirm="confirmQrPayment"
+    @cancel="showQRDialog = false"
+  />
 
   <PrintReceiptDialog
     v-model="printDialog"

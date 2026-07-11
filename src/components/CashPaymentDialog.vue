@@ -32,19 +32,19 @@
       />
 
       <!-- Quick amount buttons -->
-      <!-- <div class="d-flex ga-2 mb-4">
+      <div class="d-flex ga-2 mb-4">
         <v-btn
           v-for="amount in quickAmounts"
           :key="amount"
-          size="small"
+          height="44"
           variant="tonal"
           color="primary"
-          class="flex-grow-1"
+          class="flex-grow-1 text-none font-weight-bold"
           @click="cashReceived = amount"
         >
           {{ fmt(amount) }}
         </v-btn>
-      </div> -->
+      </div>
 
       <!-- Change -->
       <div
@@ -71,7 +71,7 @@
         <v-btn
           color="primary"
           class="flex-grow-1"
-          :disabled="cashReceived < total"
+          :disabled="!cashReceived || cashReceived < total"
           :loading="loading"
           @click="confirm"
         >
@@ -117,16 +117,16 @@
   const change = computed(() => cashReceived.value - props.total)
 
   const quickAmounts = computed(() => {
-    const t = props.total
+    const total = props.total
     const steps = [10000, 20000, 50000, 100000]
     return steps
-      .map(step => Math.ceil(t / step) * step)
-      .filter((v, i, arr) => v >= t && arr.indexOf(v) === i)
+      .map(step => Math.ceil(total / step) * step)
+      .filter((v, i, arr) => v >= total && arr.indexOf(v) === i)
       .slice(0, 4)
   })
 
   const confirm = () => {
-    if (cashReceived.value < props.total) return
+    if (!cashReceived.value || cashReceived.value < props.total) return
     emit('confirm', {
       cash_received: cashReceived.value,
       change: change.value

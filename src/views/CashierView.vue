@@ -38,10 +38,9 @@
     let list = [...orders.value]
 
     if (filterType.value === 'table') {
-      list = list.filter(o => o.order_type)
-      console.log(list)
+      list = list.filter(o => o.table)
     } else if (filterType.value === 'takeaway') {
-      list = list.filter(o => !o.order_type)
+      list = list.filter(o => !o.table)
     }
 
     return list.sort((a, b) => {

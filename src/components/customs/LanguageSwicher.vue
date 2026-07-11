@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+  import { ref, computed, getCurrentInstance } from 'vue'
   import { useI18n } from 'vue-i18n'
 
   defineProps({
@@ -40,16 +40,6 @@
       proxy.$vuetify.locale.current = lang
     }
   }
-
-  onMounted(() => {
-    const savedLang = localStorage.getItem('lang')
-    if (savedLang) {
-      locale.value = savedLang
-      if (proxy?.$vuetify?.locale) {
-        proxy.$vuetify.locale.current = savedLang
-      }
-    }
-  })
 </script>
 
 <template>

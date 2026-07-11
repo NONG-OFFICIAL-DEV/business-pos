@@ -64,12 +64,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // ── 3. Logged-in user hits login → redirect by role ───────────────────
-  // if (to.name === 'login') {
-  //   return next({ name: resolveHome(authStore) })
-  // }
-
-  // ── 5. Route requires a specific permission ────────────────────────────
+  // ── Route requires a specific permission ───────────────────────────────
   if (to.meta.permission && !authStore.can(to.meta.permission)) {
     return next({ name: 'Forbidden' }) // or resolveHome(authStore)
   }

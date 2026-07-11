@@ -1,6 +1,8 @@
 <script setup>
   import { computed, ref } from 'vue'
   import { usePosStore } from '@/stores/posStore'
+  import { useI18n } from 'vue-i18n'
+  import { useAppUtils } from '@nong-official-dev/core'
 
   import CartHeader from './cardDrawer/CartHeader.vue'
   import CartItems from './cardDrawer/CartItems.vue'
@@ -9,6 +11,8 @@
 
   const emit = defineEmits(['checkout', 'print-bill', 'scan'])
 
+  const { t } = useI18n()
+  const { confirm } = useAppUtils()
   const posStore = usePosStore()
   const showDiscountModal = ref(false)
 
@@ -36,8 +40,25 @@
   })
 
   const updateQty = (itemId, quantity) => posStore.updateQty(itemId, quantity)
-  const clearCart = () => posStore.clearCart()
-  const clearBill = () => posStore.clearBill()
+
+  const clearCart = () => {
+    confirm({
+      title: t('dialog.confirm_clear_cart'),
+      message: t('dialog.cannot_undo'),
+      options: { type: 'error' },
+      agree: () => posStore.clearCart()
+    })
+  }
+
+  const clearBill = () => {
+    confirm({
+      title: t('dialog.confirm_clear_bill'),
+      message: t('dialog.cannot_undo'),
+      options: { type: 'error' },
+      agree: () => posStore.clearBill()
+    })
+  }
+
   const selectPayment = method => posStore.setPaymentMethod(method)
 
   const checkout = () => {
@@ -46,14 +67,10 @@
       payment: posStore.paymentMethod
     })
   }
-  // Inside your <script setup>
+
   const handleDiscount = discountData => {
     // discountData contains { type, value, amount } from the dialog
-    posStore.setDiscount(discountData.amount)
-
-    // Optional: If you want to track if it's percentage or fixed in store:
-    // posStore.setDiscountDetail(discountData);
-
+    posStore.applyDiscount(discountData)
     showDiscountModal.value = false
   }
 

@@ -4,8 +4,14 @@
 
       <!-- Left: DB status -->
       <div class="d-flex align-center gap-1">
-        <v-icon icon="mdi-database-check" size="14" color="success" />
-        <span class="footer-text">DB SYNCED</span>
+        <v-icon
+          :icon="connected ? 'mdi-database-check' : 'mdi-database-alert-outline'"
+          size="14"
+          :color="connected ? 'success' : 'warning'"
+        />
+        <span class="footer-text">
+          {{ connected ? $t('footer.connected') : $t('footer.disconnected') }}
+        </span>
       </div>
 
       <!-- Center: USB printer status (Android only) -->
@@ -31,6 +37,9 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import echo from '@/utils/echo'
+
 defineProps({
   connectUsb:   { type: Function, default: null },
   usbConnected: { type: Boolean,  default: false },
@@ -38,6 +47,15 @@ defineProps({
 })
 
 const year = new Date().getFullYear()
+
+const connected = ref(false)
+
+onMounted(() => {
+  const connection = echo.connector.pusher.connection
+  connected.value = connection.state === 'connected'
+  connection.bind('connected', () => (connected.value = true))
+  connection.bind('disconnected', () => (connected.value = false))
+})
 </script>
 
 <style scoped>
@@ -48,12 +66,12 @@ const year = new Date().getFullYear()
   color: #94a3b8;
 }
 .footer-link {
-  color: #f59e0b;
+  color: #8d6e63;
   cursor: pointer;
   text-decoration: underline;
 }
 .footer-link:hover {
-  color: #d97706;
+  color: #3e2723;
 }
 .gap-1 {
   gap: 4px;

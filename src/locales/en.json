@@ -88,7 +88,9 @@
     "aba": "ABA",
     "acleda": "ACLEDA",
     "wing": "Wing",
-    "amount_received": "Enter amount received"
+    "amount_received": "Enter amount received",
+    "scan_to_pay": "Scan to Pay",
+    "payment_received": "Payment Received"
   },
 
   "menu": {
@@ -119,7 +121,12 @@
     "occupied": "Occupied",
     "reserved": "Reserved",
     "select": "Select Table",
-    "no_table": "No Table"
+    "no_table": "No Table",
+    "floor_plan": "Floor Plan",
+    "no_tables_found": "No tables found",
+    "refresh": "Refresh",
+    "seats": "Seats",
+    "occupied_tooltip": "Table is occupied"
   },
 
   "receipt": {
@@ -133,7 +140,11 @@
     "confirm_void": "Are you sure you want to void this order?",
     "confirm_delete": "Are you sure you want to delete this item?",
     "confirm_logout": "Are you sure you want to logout?",
-    "cannot_undo": "This action cannot be undone."
+    "cannot_undo": "This action cannot be undone.",
+    "confirm_clear_cart": "Clear all items from this order?",
+    "confirm_clear_bill": "Clear this bill and go back to unpaid orders?",
+    "confirm_open_reserved_table": "This table is reserved. Open it anyway?",
+    "confirm_mark_served": "Mark this order as served?"
   },
 
   "error": {
@@ -160,6 +171,15 @@
   "lang": {
     "km": "Khmer",
     "en": "English"
+  },
+
+  "kitchen": {
+    "title": "Kitchen Display",
+    "active_orders": "active orders",
+    "no_orders": "No active orders",
+    "no_orders_sub": "New orders will appear here automatically",
+    "done": "Done / Served",
+    "minutes_ago": "min"
   },
   "orderStatus": {
     "pending": "Pending",
@@ -216,6 +236,8 @@
   },
   "footer": {
     "printer": "PRINTER CONNECTED",
-    "ready": "READY TO PRINT"
+    "ready": "READY TO PRINT",
+    "connected": "DB SYNCED",
+    "disconnected": "RECONNECTING…"
   }
 }

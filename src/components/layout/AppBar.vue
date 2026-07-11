@@ -1,6 +1,7 @@
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, onMounted } from 'vue'
   import LanguageSwicher from '@/components/customs/LanguageSwicher.vue'
+  import { useInitials } from '@/composables/useInitials'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -13,33 +14,7 @@
 
   const emit = defineEmits(['update:search', 'update:store', 'logout'])
 
-  function getInitials(first, last, fullName) {
-    // Priority 1: first + last
-    if (first || last) {
-      const f = first?.trim()?.[0] || ''
-      const l = last?.trim()?.[0] || ''
-      const result = (f + l).toUpperCase()
-      return result || 'OP'
-    }
-
-    // Priority 2: fallback to full name
-    if (fullName) {
-      const parts = fullName.trim().split(' ')
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[1][0]).toUpperCase()
-      }
-      return parts[0].slice(0, 2).toUpperCase()
-    }
-
-    return 'OP'
-  }
-  const initials = computed(() =>
-    getInitials(
-      props.user?.first_name,
-      props.user?.last_name,
-      props.user?.full_name
-    )
-  )
+  const initials = useInitials(() => props.user)
   // Fullscreen
   const isFullscreen = ref(false)
 
@@ -110,7 +85,6 @@
       <v-btn
         icon
         variant="text"
-        size="small"
         :color="isFullscreen ? 'primary' : 'grey-darken-1'"
         rounded="lg"
         class="mr-1"
@@ -163,16 +137,6 @@
 
             <v-divider class="mb-1" />
 
-            <!-- <v-list-item
-              prepend-icon="mdi-account-circle-outline"
-              title="My profile"
-              rounded="lg"
-            />
-            <v-list-item
-              prepend-icon="mdi-cog-outline"
-              title="Settings"
-              rounded="lg"
-            /> -->
             <v-list-item
               prepend-icon="mdi-logout-variant"
               title="Log out"
@@ -246,19 +210,6 @@
     text-transform: uppercase;
   }
 
-  .user-avatar {
-    border: 2px solid #efebe9;
-    transition: transform 0.2s ease;
-  }
-
-  .user-avatar:hover {
-    transform: scale(1.05);
-  }
-
-  .action-btn {
-    background: #fdfbf9;
-    border: 1px solid #efebe9;
-  }
   /* ── Avatar ── */
   .op-avatar {
     border: 2px solid #e2e8f0;

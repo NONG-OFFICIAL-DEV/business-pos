@@ -4,7 +4,8 @@ import echo from '@/utils/echo'
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
-    orders: []
+    orders: [],
+    loading: false
   }),
   // pinia getter
   getters: {
@@ -22,10 +23,13 @@ export const useOrderStore = defineStore('order', {
     },
 
     async fetchAllOrders() {
-      const res = await orderService.getAllOrder()
-      // console.log(data.data.data);
-      
-      this.orders = res.data.data
+      this.loading = true
+      try {
+        const res = await orderService.getAllOrder()
+        this.orders = res.data.data
+      } finally {
+        this.loading = false
+      }
     },
      async printBillForPayment(orderId) {
       const res = await orderService.printBillForPayment(orderId)

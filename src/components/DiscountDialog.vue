@@ -115,7 +115,7 @@
   const discountType = ref('percentage') // percentage or fixed
   const discountValue = ref('')
   const presets = computed(() => {
-    return discountType.ref === 'percentage'
+    return discountType.value === 'percentage'
       ? [5, 10, 15, 20, 50]
       : [1, 2, 5, 10]
   })
@@ -144,10 +144,12 @@
     close()
   }
 
-  // Ensure value doesn't exceed subtotal if fixed
+  // Ensure value doesn't exceed subtotal if fixed, or 100 if percentage
   watch(discountValue, newVal => {
     if (discountType.value === 'fixed' && newVal > props.subtotal) {
       discountValue.value = props.subtotal
+    } else if (discountType.value === 'percentage' && newVal > 100) {
+      discountValue.value = 100
     }
   })
 </script>

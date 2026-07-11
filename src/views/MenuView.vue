@@ -154,10 +154,8 @@
             mdi-coffee-off-outline
           </v-icon>
         </v-avatar>
-        <h3 class="empty-title">No matches found</h3>
-        <p class="empty-sub">
-          We couldn't find anything matching your selection.
-        </p>
+        <h3 class="empty-title">{{ t('menu.no_items') }}</h3>
+        <p class="empty-sub">{{ t('menu.no_items_sub') }}</p>
         <v-btn
           v-if="selectedCategory !== 'All'"
           variant="flat"
@@ -166,7 +164,7 @@
           class="mt-4"
           @click="selectedCategory = 'All'"
         >
-          Clear Filter
+          {{ t('btn.clear_filter') }}
         </v-btn>
       </div>
 
@@ -233,13 +231,8 @@
                   variant="flat"
                   class="font-weight-bold"
                 >
-                  SOLD OUT
+                  {{ t('status.sold_out') }}
                 </v-chip>
-              </div>
-
-              <div v-else-if="product.has_variants" class="variant-chip">
-                <v-icon size="10" class="mr-1">mdi-tune</v-icon>
-                CUSTOMIZABLE
               </div>
             </div>
 
@@ -270,13 +263,13 @@
                     'text-white': product.variants?.length > 0,
                     'text-brown-darken-3': !product.variants?.length
                   }"
-                  size="32"
+                  size="38"
                   flat
                   icon
                   rounded="lg"
                   :disabled="product.is_available === false"
                 >
-                  <v-icon size="18">
+                  <v-icon size="20">
                     {{
                       product.variants?.length > 0
                         ? 'mdi-dots-horizontal'
@@ -391,20 +384,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .variant-chip {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 9px;
-    font-weight: 800;
-    color: #3e2723;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   .product-name {

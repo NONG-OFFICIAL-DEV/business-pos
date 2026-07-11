@@ -9,13 +9,21 @@ export const useCategoryMenuStore = defineStore('categoryMenu', () => {
 
   async function fetchAllMenuCategory() {
     loading.value = true
-    const { data } = await categoryMenuService.getAll()
-    items.value = data.data.data || []
-    loading.value = false
+    try {
+      const { data } = await categoryMenuService.getAll()
+      items.value = data.data.data || []
+    } finally {
+      loading.value = false
+    }
   }
   async function fetchMenuCategories(parmap) {
-    const { data } = await categoryMenuService.getCategories(parmap)
-    categories.value = data.data || []
+    loading.value = true
+    try {
+      const { data } = await categoryMenuService.getCategories(parmap)
+      categories.value = data.data || []
+    } finally {
+      loading.value = false
+    }
   }
   return {
     loading,

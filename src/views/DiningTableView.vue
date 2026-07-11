@@ -8,7 +8,7 @@
 
   const { t } = useI18n()
   const router = useRouter()
-  const { notif } = useAppUtils()
+  const { notif, confirm } = useAppUtils()
   const posStore = usePosStore()
   const tableStore = useDiningTableStore()
 
@@ -39,13 +39,25 @@
   }
 
   // ── Open table ─────────────────────────────────
-  function openTable(table) {
+  function goToTable(table) {
     posStore.selectTable(table)
     notif(t('messages.tableSelected', { tableNumber: table.table_number }), {
       type: 'success',
       color: 'primary'
     })
     router.push('/pos/menu')
+  }
+
+  function openTable(table) {
+    if (table.status === 'reserved') {
+      confirm({
+        title: t('dialog.confirm_open_reserved_table'),
+        options: { type: 'warning' },
+        agree: () => goToTable(table)
+      })
+      return
+    }
+    goToTable(table)
   }
 
   // ── Counters ───────────────────────────────────
@@ -80,16 +92,18 @@
 <template>
   <v-container fluid class="pa-4">
     <custom-title icon="mdi-table-chair">
-      Floor Plan
+      {{ t('table.floor_plan') }}
 
       <template #right>
         <v-chip color="success" class="me-2">
-          Available: {{ availableCount }}
+          {{ t('table.available') }}: {{ availableCount }}
         </v-chip>
         <v-chip color="error" class="me-2">
-          Occupied: {{ occupiedCount }}
+          {{ t('table.occupied') }}: {{ occupiedCount }}
         </v-chip>
-        <v-chip color="warning">Reserved: {{ reservedCount }}</v-chip>
+        <v-chip color="warning">
+          {{ t('table.reserved') }}: {{ reservedCount }}
+        </v-chip>
       </template>
     </custom-title>
 
@@ -121,8 +135,10 @@
       class="empty-state"
     >
       <v-icon size="64" color="grey-lighten-1">mdi-table-off</v-icon>
-      <p class="text-grey mt-3">No tables found</p>
-      <v-btn variant="tonal" class="mt-2" @click="fetchTables">Refresh</v-btn>
+      <p class="text-grey mt-3">{{ t('table.no_tables_found') }}</p>
+      <v-btn variant="tonal" class="mt-2" @click="fetchTables">
+        {{ t('table.refresh') }}
+      </v-btn>
     </div>
 
     <!-- Tables grid -->
@@ -138,8 +154,8 @@
         <v-tooltip
           :text="
             isDisabled(table)
-              ? 'Table is occupied'
-              : `Seats ${table.capacity} · ${table.area}`
+              ? t('table.occupied_tooltip')
+              : `${t('table.seats')} ${table.capacity} · ${table.area}`
           "
           location="top"
         >
@@ -240,16 +256,6 @@
 
   .line-height-1 {
     line-height: 1;
-  }
-
-  .bg-success {
-    background-color: #4caf50 !important;
-  }
-  .bg-error {
-    background-color: #ff5252 !important;
-  }
-  .bg-warning {
-    background-color: #fb8c00 !important;
   }
 
   /* Empty state */

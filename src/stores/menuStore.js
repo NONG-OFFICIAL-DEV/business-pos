@@ -13,9 +13,12 @@ export const useMenuStore = defineStore('menu', () => {
   }
   async function getProducts(params) {
     loading.value = true
-    const res = await menuService.fetchProducts(params)
-    products.value = res.data.data.data || []
-    loading.value = false
+    try {
+      const res = await menuService.fetchProducts(params)
+      products.value = res.data.data.data || []
+    } finally {
+      loading.value = false
+    }
   }
 
   return { loading,menus, products, fetchMenus, getProducts }
