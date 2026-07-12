@@ -2,13 +2,11 @@
   import { formatTimeAgo } from '@nong-official-dev/core'
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
-  import { useBuType } from '@/composables/useBuType'
 
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
   const route = useRoute()
-  const { isCoffeeShop, isRestaurant } = useBuType()
 
   const isUnpaidOrderPage = computed(() => route.meta.showDrawer === 4)
 
@@ -36,23 +34,13 @@
         {{ t('order.title') }}
       </div>
 
-      <div v-if="isCoffeeShop" class="text-caption text-medium-emphasis">
-        {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
-      </div>
-
-      <template v-else-if="isRestaurant">
-        <div class="d-flex align-center flex-wrap" style="gap: 4px">
-          <v-chip v-if="table" size="x-small" color="primary" variant="tonal">
-            T-{{ table.table_number }}
-          </v-chip>
-          <span class="text-caption text-medium-emphasis">
-            {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
-          </span>
-        </div>
-      </template>
-
-      <div v-else class="text-caption text-medium-emphasis">
-        {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
+      <div class="d-flex align-center flex-wrap" style="gap: 4px">
+        <v-chip v-if="table" size="x-small" color="primary" variant="tonal">
+          T-{{ table.table_number }}
+        </v-chip>
+        <span class="text-caption text-medium-emphasis">
+          {{ count }} {{ t('order.item') }}{{ count !== 1 ? 's' : '' }}
+        </span>
       </div>
     </div>
 
@@ -60,7 +48,8 @@
       :disabled="!count"
       icon="mdi-delete-sweep"
       variant="tonal"
-      size="x-small"
+      size="small"
+      class="tap-44"
       color="error"
       @click="$emit('clear')"
     />

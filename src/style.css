@@ -10,6 +10,29 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Brand palette — shared across POS screens instead of re-typed hex per component */
+  --pos-espresso: #3e2723;
+  --pos-espresso-dark: #2e1d1a;
+  --pos-latte: #8d6e63;
+  --pos-latte-light: #a1887f;
+  --pos-cream: #f8f5f2;
+  --pos-cream-alt: #f5f0eb;
+  --pos-border: #edf2f7;
+  --pos-border-warm: #f0ece8;
+
+  /* Radius scale */
+  --pos-radius-sm: 8px;
+  --pos-radius-md: 12px;
+  --pos-radius-lg: 16px;
+  --pos-radius-xl: 20px;
+}
+
+/* Minimum comfortable touch target for staff tapping on a tablet.
+   Apply to any filter/action button or chip that isn't already full-size. */
+.tap-44 {
+  min-height: 44px !important;
+  min-width: 44px !important;
 }
 html,
 body {

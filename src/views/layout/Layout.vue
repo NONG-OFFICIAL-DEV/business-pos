@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, watch, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useAppUtils } from '@nong-official-dev/core'
@@ -8,22 +8,22 @@
   import { useOrderStore } from '@/stores/orderStore'
   import { useAuthStore } from '@/stores/auth'
   import { useCartUiStore } from '@/stores/cartUiStore'
-  import { useBuType } from '@/composables/useBuType'
   import { useReceipt } from '@/utils/printReceipt'
+  import { useConnectionStatus } from '@/composables/useConnectionStatus'
   import PosAppBar from '@/components/layout/AppBar.vue'
   import SidebarMenu from '@/components/layout/SidebarMenu.vue'
   import PosCartDrawer from '@/components/layout/CartDrawer.vue'
   import OrderCustomizationDialog from '@/components/OrderCustomizationDialog.vue'
   import QRPaymentDialog from '@/components/QRPaymentDialog.vue'
   import CashPaymentDialog from '@/components/CashPaymentDialog.vue'
-  import PosFooter from '@/components/layout/Footer.vue'
   import PrintReceiptDialog from '@/components/PrintReceiptDialog.vue'
+  import SettingsDialog from '@/components/common/SettingsDialog.vue'
 
   // ── Composables ────────────────────────────────────────────────────────────
   const { t } = useI18n()
   const { notif } = useAppUtils()
-  const { isCoffeeShop, isRestaurant } = useBuType()
   const router = useRouter()
+  const { connected } = useConnectionStatus()
 
   // ── Stores ─────────────────────────────────────────────────────────────────
   const posStore = usePosStore()
@@ -72,6 +72,7 @@
   const printDialog = ref(false)
   const pendingPrints = ref(null)
   const receipt = ref(null)
+  const settingsDialog = ref(false)
 
   // ── Cart ───────────────────────────────────────────────────────────────────
   const activeItems = computed(() => posStore.activeItems)
@@ -79,35 +80,21 @@
 
   // ── Order payload builder ──────────────────────────────────────────────────
   function buildPayload(extra = {}) {
-    if (isCoffeeShop.value) {
-      return {
-        cash_tendered: extra.cash_tendered ?? 0,
-        change_given: extra.change_given ?? 0,
-        branch_id: authStore.branch_id,
-        items: activeItems.value.map(i => ({
-          product_id: i.id,
-          variant_id: i.variant_id || null,
-          quantity: i.quantity,
-          price: i.unit_price,
-          customizations: i.customizations || null,
-          note: ''
-        })),
-        total_amount: total.value,
-        payment_method: posStore.paymentMethod
-      }
-    }
+    const payLater = posStore.paymentTiming === 'later'
 
     return {
       cash_tendered: extra.cash_tendered ?? 0,
       change_given: extra.change_given ?? 0,
-      table_id: isCoffeeShop.value ? null : posStore.selectedTable?.id || null,
+      table_id: posStore.selectedTable?.id ?? null,
       branch_id: authStore.branch_id,
-      payment_method: posStore.paymentMethod,
+      payment_method: payLater ? null : posStore.paymentMethod,
+      total_amount: total.value,
       items: activeItems.value.map(i => ({
-        variant_id: i.variant_id || null,
         product_id: i.id,
+        variant_id: i.variant_id || null,
         quantity: i.quantity,
         price: i.unit_price,
+        customizations: i.customizations || null,
         note: ''
       }))
     }
@@ -116,6 +103,10 @@
   async function handleCheckout() {
     if (!activeItems.value.length) {
       notif(t('cart.empty'), { type: 'warning' })
+      return
+    }
+    if (posStore.paymentTiming === 'later') {
+      await submitOrder()
       return
     }
     if (posStore.paymentMethod === 'cash') {
@@ -139,7 +130,7 @@
       const res = await orderStore.createOrder(buildPayload(extra))
       const data = res.data.data
 
-      if (posStore.selectedStore?.type === 'hospitality') {
+      if (posStore.selectedTable) {
         await menuStore.fetchMenus()
       }
 
@@ -204,14 +195,17 @@
   // ── Mount ──────────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
-      if (isRestaurant.value) {
-        await orderStore.fetchAllOrders()
-      }
+      await orderStore.fetchAllOrders()
+      orderStore.subscribeToOrders()
       user.value = authStore.me
     } catch {
       await authStore.logout()
       router.push({ name: 'login' })
     }
+  })
+
+  onUnmounted(() => {
+    orderStore.unsubscribeFromOrders()
   })
 </script>
 
@@ -223,10 +217,10 @@
     :branchName="authStore.branch_name"
     @logout="handleLogout"
     @orders="goToOrders"
+    @open-settings="settingsDialog = true"
     />
-    <!-- :content="orderStore.unpaidCount" -->
 
-  <SidebarMenu v-if="isRestaurant" />
+  <SidebarMenu :order-count="orderStore.orders.length" />
 
   <PosCartDrawer @checkout="handleCheckout" @print-bill="handlePrintBill" />
 
@@ -242,11 +236,17 @@
     </v-container>
   </v-main>
 
-  <PosFooter
-    :connect-usb="connectUsb"
-    :usb-connected="usbConnected"
-    :usb-supported="usbSupported"
-  />
+  <!-- Only surface connectivity to staff when it's actually a problem -->
+  <!-- <v-snackbar
+    :model-value="!connected"
+    color="warning"
+    location="bottom"
+    :timeout="-1"
+    rounded="lg"
+  >
+    <v-icon icon="mdi-wifi-alert" class="mr-2" />
+    {{ t('connection.lost') }}
+  </v-snackbar> -->
 
   <!-- ── Dialogs ─────────────────────────────────────────────────────────── -->
   <OrderCustomizationDialog
@@ -280,11 +280,18 @@
     @skip="skipPrint"
     @connect-usb="connectUsb"
   />
+
+  <SettingsDialog
+    v-model="settingsDialog"
+    :usb-supported="usbSupported"
+    :usb-connected="usbConnected"
+    @connect-usb="connectUsb"
+  />
 </template>
 
 <style scoped>
   .mart-content {
-    height: calc(100vh - 60px - 32px);
+    height: calc(100vh - 60px);
     overflow-y: auto;
     scroll-behavior: smooth;
   }

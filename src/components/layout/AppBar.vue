@@ -1,7 +1,6 @@
 <script setup>
-  import { ref, onMounted } from 'vue'
-  import LanguageSwicher from '@/components/customs/LanguageSwicher.vue'
   import { useInitials } from '@/composables/useInitials'
+  import { useConnectionStatus } from '@/composables/useConnectionStatus'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -12,25 +11,16 @@
     branchName: String
   })
 
-  const emit = defineEmits(['update:search', 'update:store', 'logout'])
+  const emit = defineEmits([
+    'update:search',
+    'update:store',
+    'logout',
+    'open-settings'
+  ])
 
   const initials = useInitials(() => props.user)
-  // Fullscreen
-  const isFullscreen = ref(false)
+  const { connected } = useConnectionStatus()
 
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {})
-    } else {
-      document.exitFullscreen().catch(() => {})
-    }
-  }
-
-  onMounted(() => {
-    document.addEventListener('fullscreenchange', () => {
-      isFullscreen.value = !!document.fullscreenElement
-    })
-  })
   function handleLogout() {
     emit('logout')
   }
@@ -79,27 +69,31 @@
     </v-app-bar-title>
 
     <template v-slot:append>
-      <LanguageSwicher />
-      <v-divider vertical inset class="mx-2 d-none d-sm-block" />
-      <!-- Fullscreen toggle -->
-      <v-btn
-        icon
-        variant="text"
-        :color="isFullscreen ? 'primary' : 'grey-darken-1'"
-        rounded="lg"
-        class="mr-1"
-        :title="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'"
-        @click="toggleFullscreen"
+      <!-- Settings: language, fullscreen, connection & printer all live here -->
+      <v-badge
+        :model-value="!connected"
+        color="warning"
+        dot
+        location="top end"
+        offset-x="6"
+        offset-y="6"
       >
-        <v-icon
-          :icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-          size="20"
-        />
-      </v-btn>
+        <v-btn
+          icon
+          variant="text"
+          color="grey-darken-1"
+          rounded="lg"
+          class="mr-1 tap-44"
+          :title="t('nav.settings')"
+          @click="emit('open-settings')"
+        >
+          <v-icon icon="mdi-cog-outline" size="20" />
+        </v-btn>
+      </v-badge>
       <v-divider vertical inset class="mx-2 d-none d-sm-block" />
       <div class="user-profile-section d-flex align-center pl-2">
         <div class="text-right d-none d-md-block mr-3" style="line-height: 1.1">
-          <div class="user-name">{{ user?.full_name || 'Barista' }}</div>
+          <div class="user-name">{{ user?.full_name || t('label.staff') }}</div>
           <div class="user-role">{{ roleName }}</div>
         </div>
 
@@ -117,29 +111,40 @@
               </span>
             </v-avatar>
           </template>
-          <v-list width="220" rounded="xl" class="mt-3 pa-2">
+          <v-list width="240" rounded="xl" class="mt-3 pa-2">
             <!-- Profile header -->
-            <v-list-item class="mb-1" density="compact">
-              <template v-slot:prepend>
-                <v-avatar size="32" color="brown-darken-3" rounded="lg">
-                  <span class="text-caption font-weight-bold text-white">
+            <div class="profile-header pa-2 mb-1">
+              <div class="d-flex align-center ga-3 mb-2">
+                <v-avatar size="40" color="brown-darken-3" rounded="lg">
+                  <span class="text-body-2 font-weight-bold text-white">
                     {{ initials }}
                   </span>
                 </v-avatar>
-              </template>
-              <v-list-item-title class="font-weight-medium text-body-2">
-                {{ user?.full_name }}
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-caption">
+                <div class="min-width-0">
+                  <div class="font-weight-medium text-body-2 text-truncate">
+                    {{ user?.full_name || t('label.staff') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis text-truncate">
+                    {{ branchName }}
+                  </div>
+                </div>
+              </div>
+              <v-chip
+                v-if="roleName"
+                size="x-small"
+                variant="tonal"
+                color="primary"
+                class="font-weight-bold"
+              >
                 {{ roleName }}
-              </v-list-item-subtitle>
-            </v-list-item>
+              </v-chip>
+            </div>
 
             <v-divider class="mb-1" />
 
             <v-list-item
               prepend-icon="mdi-logout-variant"
-              title="Log out"
+              :title="t('btn.logout')"
               base-color="error"
               rounded="lg"
               @click="handleLogout"
@@ -208,6 +213,14 @@
     font-weight: 600;
     color: #a1887f;
     text-transform: uppercase;
+  }
+
+  .profile-header {
+    border-radius: 12px;
+  }
+
+  .min-width-0 {
+    min-width: 0;
   }
 
   /* ── Avatar ── */

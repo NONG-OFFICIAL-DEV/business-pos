@@ -10,15 +10,11 @@ export const usePosStore = defineStore('pos', () => {
 
   const cart = ref([])
   const paymentMethod = ref('cash')
+  const paymentTiming = ref('now') // 'now' | 'later'
   const orderId = ref(null)
   const discountType = ref('fixed') // 'percentage' | 'fixed'
   const discountValue = ref(0)
   const { t } = useI18n()
-
-  const stores = [
-    { id: 1, name: 'Coffee Shop', type: 'coffee' },
-    { id: 2, name: 'Restaurant', type: 'hospitality' }
-  ]
 
   const paymentMethods = computed(() => [
     { id: 'cash', icon: 'mdi-cash', label: t('payment.cash') },
@@ -26,7 +22,6 @@ export const usePosStore = defineStore('pos', () => {
     { id: 'card', icon: 'mdi-credit-card-outline', label: t('payment.card') }
   ])
 
-  const selectedStore = ref(stores[1])
   const selectedTable = ref(null)
 
   const selectedBill = ref([])
@@ -72,14 +67,12 @@ export const usePosStore = defineStore('pos', () => {
     discountValue.value = 0
   }
 
-  function selectStore(store) {
-    selectedStore.value = store
-    clearCart()
-    selectedTable.value = null
-  }
-
   function selectTable(table) {
     selectedTable.value = table
+  }
+
+  function setPaymentTiming(timing) {
+    paymentTiming.value = timing
   }
   const router = useRouter()
 
@@ -131,6 +124,7 @@ export const usePosStore = defineStore('pos', () => {
     cart.value = []
     clearDiscount()
     paymentMethod.value = 'cash'
+    paymentTiming.value = 'now'
   }
 
   function setPaymentMethod(method) {
@@ -142,12 +136,11 @@ export const usePosStore = defineStore('pos', () => {
     /** state */
     cart,
     paymentMethod,
+    paymentTiming,
     orderId,
     discountType,
     discountValue,
-    stores,
     paymentMethods,
-    selectedStore,
     selectedTable,
     selectedBill,
     isPrintBill,
@@ -159,7 +152,6 @@ export const usePosStore = defineStore('pos', () => {
     discount,
 
     /** actions */
-    selectStore,
     applyDiscount,
     clearDiscount,
     selectTable,
@@ -170,6 +162,7 @@ export const usePosStore = defineStore('pos', () => {
     removeFromCart,
     clearCart,
     setPaymentMethod,
+    setPaymentTiming,
     clearBill
   }
 })

@@ -43,10 +43,8 @@
     loading.value = true
     generalError.value = ''
     try {
-      const success = await store.loginByPin(pin.value)
-      const path =
-        success.data.bu_type === 'restaurant' ? '/pos/tables' : '/pos/menu'
-      router.push(path)
+      await store.loginByPin(pin.value)
+      router.push('/pos/menu')
       notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
     } catch (err) {
       generalError.value =
@@ -74,9 +72,7 @@
         })
       }
       if (success) {
-        const path =
-          success.data.bu_type === 'restaurant' ? '/pos/tables' : '/pos/menu'
-        router.push(path)
+        router.push('/pos/menu')
         notif(t('messages.loginSucess'), { type: 'success', color: 'primary' })
       }
     } catch (err) {

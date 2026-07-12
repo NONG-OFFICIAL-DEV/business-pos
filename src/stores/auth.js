@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import authService from '../api/auth'
-import { BU_TYPES } from '@/constants/buTypes'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -14,10 +13,6 @@ export const useAuthStore = defineStore('auth', {
     bu_type: null
   }),
 
-  getters: {
-    isRestaurant: state => state.bu_type === BU_TYPES.RESTAURANT,
-    isCoffeeShop: state => state.bu_type === BU_TYPES.COFFEE_SHOP
-  },
   actions: {
     _applyLoginResponse(data) {
       this.token = data.token

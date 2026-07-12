@@ -26,12 +26,12 @@
   const posStore = usePosStore()
   const route = useRoute()
   const isUnpaidOrderPage = computed(() => route.meta.showDrawer === 4)
-  const isRestaurant = computed(
-    () => posStore.selectedStore?.type === 'hospitality'
-  )
-  const isCoffeeStore = computed(
-    () => posStore.selectedStore?.type === 'coffee'
-  )
+
+  const paymentTiming = computed({
+    get: () => posStore.paymentTiming,
+    set: val => posStore.setPaymentTiming(val)
+  })
+  const isPayLater = computed(() => paymentTiming.value === 'later')
 
   const handleClick = () => {
     if (posStore.isPrintBill) {
@@ -43,13 +43,15 @@
 
   const buttonLabel = computed(() => {
     if (isUnpaidOrderPage.value) return 'PRINT BILL & PAY'
-    if (isRestaurant.value) return t('btn.place_order')
+    if (isPayLater.value) return t('btn.send_order_later')
+    if (posStore.selectedTable) return t('btn.place_order')
     return t('btn.confirm')
   })
 
   const buttonIcon = computed(() => {
     if (isUnpaidOrderPage.value) return 'mdi-printer-check'
-    if (isRestaurant.value) return 'mdi-silverware-fork-knife'
+    if (isPayLater.value) return 'mdi-clock-outline'
+    if (posStore.selectedTable) return 'mdi-silverware-fork-knife'
     return 'mdi-credit-card-check'
   })
 </script>
@@ -93,7 +95,26 @@
       </div>
     </div>
 
-    <div v-if="!isUnpaidOrderPage || !isCoffeeStore" class="mb-4">
+    <v-btn-toggle
+      v-if="!isUnpaidOrderPage"
+      v-model="paymentTiming"
+      mandatory
+      color="brown-darken-3"
+      class="compact-toggle mb-4"
+      variant="outlined"
+      divided
+    >
+      <v-btn value="now" class="flex-grow-1 text-none" size="small">
+        <v-icon start size="16">mdi-cash-fast</v-icon>
+        {{ t('btn.pay_now') }}
+      </v-btn>
+      <v-btn value="later" class="flex-grow-1 text-none" size="small">
+        <v-icon start size="16">mdi-clock-outline</v-icon>
+        {{ t('btn.pay_later') }}
+      </v-btn>
+    </v-btn-toggle>
+
+    <div v-if="!isUnpaidOrderPage && !isPayLater" class="mb-4">
       <div
         class="text-caption font-weight-bold text-brown-lighten-2 mb-2 uppercase-label"
       >
@@ -144,6 +165,12 @@
 
   .bg-brown-lighten-5 {
     background-color: #f8f5f2 !important;
+  }
+
+  .compact-toggle {
+    width: 100%;
+    height: 44px !important;
+    border-radius: 12px !important;
   }
 
   /* Discount Link Interaction */

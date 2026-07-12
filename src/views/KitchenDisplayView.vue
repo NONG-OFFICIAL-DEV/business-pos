@@ -3,17 +3,17 @@
   import { useOrderStore } from '@/stores/orderStore'
   import { formatTimeAgo, useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-  import echo from '@/utils/echo'
+  import { useConnectionStatus } from '@/composables/useConnectionStatus'
 
   const { t } = useI18n()
   const { confirm } = useAppUtils()
   const orderStore = useOrderStore()
+  const { connected } = useConnectionStatus()
 
   // Local-only: no backend endpoint exists yet to persist a "served" status
   // (src/api/order.js only has getAllOrder/createOrder/getOrderByTable/printBillForPayment),
   // so marking a ticket done just hides it from this KDS session.
   const servedIds = ref(new Set())
-  const connected = ref(false)
   let tickTimer = null
   const tick = ref(0)
 
@@ -48,20 +48,13 @@
     })
   }
 
-  onMounted(async () => {
-    await orderStore.fetchAllOrders()
-    orderStore.subscribeToOrders()
-
-    const connection = echo.connector.pusher.connection
-    connected.value = connection.state === 'connected'
-    connection.bind('connected', () => (connected.value = true))
-    connection.bind('disconnected', () => (connected.value = false))
-
+  // Order fetching + the shared subscription are owned by Layout.vue (it
+  // persists for the whole session); this view only reads orderStore.orders.
+  onMounted(() => {
     tickTimer = setInterval(() => tick.value++, 30000)
   })
 
   onUnmounted(() => {
-    orderStore.unsubscribeFromOrders()
     clearInterval(tickTimer)
   })
 </script>

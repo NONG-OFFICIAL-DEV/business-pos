@@ -26,7 +26,10 @@ export const useOrderStore = defineStore('order', {
       this.loading = true
       try {
         const res = await orderService.getAllOrder()
-        this.orders = res.data.data
+        const payload = res.data.data
+        // Normalize: API may return a plain array or a paginated
+        // { data: [...], meta, links } wrapper depending on the endpoint.
+        this.orders = Array.isArray(payload) ? payload : (payload?.data ?? [])
       } finally {
         this.loading = false
       }

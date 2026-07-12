@@ -25,10 +25,16 @@
     "place_order": "PLACE ORDER",
     "skip": "skip",
     "verify_pin": "verify pin",
-    "sign_in": "sign in"
+    "sign_in": "sign in",
+    "pay_later": "Pay Later",
+    "send_order_later": "Send Order — Pay Later",
+    "retry": "Retry",
+    "enable": "Enable",
+    "exit": "Exit"
   },
 
   "label": {
+    "staff": "Staff",
     "quantity": "Quantity",
     "sugar_level": "Sugar Level",
     "no_sugar": "No Sugar",
@@ -126,7 +132,9 @@
     "no_tables_found": "No tables found",
     "refresh": "Refresh",
     "seats": "Seats",
-    "occupied_tooltip": "Table is occupied"
+    "all": "All",
+    "no_area": "Other",
+    "no_matches": "No tables match this filter"
   },
 
   "receipt": {
@@ -234,10 +242,43 @@
     "password": "Password",
     "email": "Email"
   },
-  "footer": {
-    "printer": "PRINTER CONNECTED",
-    "ready": "READY TO PRINT",
-    "connected": "DB SYNCED",
-    "disconnected": "RECONNECTING…"
+  "printer": {
+    "connected": "Printer connected",
+    "not_connected": "Printer not connected",
+    "disconnected": "Printer disconnected",
+    "connect": "Connect printer"
+  },
+
+  "connection": {
+    "lost": "Connection lost — orders may not sync",
+    "restored": "Connection restored"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "printer": "Printer",
+    "language": "Language",
+    "display": "Display",
+    "connection": "Connection",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting…"
+  },
+
+  "appbar": {
+    "enter_fullscreen": "Enter Fullscreen",
+    "exit_fullscreen": "Exit Fullscreen"
+  },
+
+  "cashier": {
+    "title": "Unpaid Orders",
+    "active_orders": "active orders",
+    "all": "All",
+    "sort_newest": "Newest",
+    "sort_oldest": "Oldest",
+    "no_orders": "No active orders",
+    "no_orders_sub": "New orders will appear here automatically",
+    "no_matches": "No orders match this filter",
+    "new_badge": "NEW",
+    "order_label": "ORDER"
   }
 }

@@ -1,21 +1,22 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
+  import { onBeforeRouteLeave } from 'vue-router'
   import { useMenuStore } from '@/stores/menuStore'
   import { useCategoryMenuStore } from '@/stores/categoryMenu'
   import { useAuthStore } from '@/stores/auth'
   import { useCartUiStore } from '@/stores/cartUiStore'
-  import { useBuType } from '@/composables/useBuType'
+  import { usePosStore } from '@/stores/posStore'
   import { useI18n } from 'vue-i18n'
   import { formatKHR, useAppUtils } from '@nong-official-dev/core'
 
   const { notif } = useAppUtils()
   const { t } = useI18n()
-  const { isRestaurant, isCoffeeStore } = useBuType()
 
   const authStore = useAuthStore()
   const menuStore = useMenuStore()
   const menuCategoryStore = useCategoryMenuStore()
   const cartUi = useCartUiStore()
+  const posStore = usePosStore()
 
   const props = defineProps({
     search: {
@@ -72,6 +73,12 @@
       menuCategoryStore.fetchMenuCategories({ branch_id: authStore.branch_id })
     ])
   })
+
+  // Leaving Menu (Tables, Kitchen, Orders…) drops the in-progress cart —
+  // staff start fresh next time rather than finding stale items still picked.
+  onBeforeRouteLeave(() => {
+    posStore.clearCart()
+  })
 </script>
 
 <template>
@@ -100,7 +107,7 @@
               :class="['cat-pill text-none', { active: isSelected }]"
               rounded="xl"
               elevation="0"
-              size="larg"
+              size="large"
               @click="toggle"
             >
               <v-icon size="16">mdi-apps</v-icon>
@@ -118,7 +125,7 @@
               :class="['cat-pill text-none', { active: isSelected }]"
               rounded="xl"
               elevation="0"
-              size="larg"
+              size="large"
               @click="toggle"
             >
               <v-icon v-if="cat.icon" size="16">{{ cat.icon }}</v-icon>
@@ -263,13 +270,13 @@
                     'text-white': product.variants?.length > 0,
                     'text-brown-darken-3': !product.variants?.length
                   }"
-                  size="38"
+                  size="44"
                   flat
                   icon
                   rounded="lg"
                   :disabled="product.is_available === false"
                 >
-                  <v-icon size="20">
+                  <v-icon size="22">
                     {{
                       product.variants?.length > 0
                         ? 'mdi-dots-horizontal'

@@ -35,12 +35,9 @@
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
   import { useAuthStore } from '@/stores/auth'
-  import { useBuType } from '@/composables/useBuType'
-
 
   const authStore = useAuthStore()
   const route = useRoute()
-  const { isCoffeeShop, isRestaurant } = useBuType()
 
   const props = defineProps({
     orderCount: { type: Number, default: 0 },
@@ -51,7 +48,7 @@
     return route.path === item.to
   }
 
-  const RESTAURANT_MENU = [
+  const MENU_ITEMS = [
     {
       tooltip: 'Tables',
       icon: 'mdi-table-chair',
@@ -79,50 +76,14 @@
       value: 'Cashier',
       to: '/pos/cashier',
       premium: false
-    },
-    {
-      tooltip: 'Reservations',
-      icon: 'mdi-calendar-clock-outline',
-      value: 'Reservations',
-      to: '/pos/reservations',
-      premium: true
-    }
-  ]
-
-  const COFFEE_SHOP_MENU = [
-    {
-      tooltip: 'Menu',
-      icon: 'mdi-coffee-outline',
-      value: 'Menu List',
-      to: '/pos/menu-list',
-      premium: false
-    },
-    {
-      tooltip: 'Orders',
-      icon: 'mdi-cash-register',
-      value: 'Cashier',
-      to: '/pos/cashier',
-      premium: false
-    },
-    {
-      tooltip: 'Kitchen',
-      icon: 'mdi-silverware',
-      value: 'Kitchen Display',
-      to: '/pos/kds',
-      premium: true
     }
   ]
 
   const isPremium = computed(() => authStore.plan === 'premium')
 
-  const menuItems = computed(() => {
-    let items = isRestaurant.value
-      ? RESTAURANT_MENU
-      : isCoffeeShop.value
-        ? COFFEE_SHOP_MENU
-        : []
-    return items.filter(item => !item.premium || isPremium.value)
-  })
+  const menuItems = computed(() =>
+    MENU_ITEMS.filter(item => !item.premium || isPremium.value)
+  )
 </script>
 
 <style scoped>

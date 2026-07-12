@@ -1,9 +1,12 @@
 <script setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
   import { usePosStore } from '@/stores/posStore'
   import { formatTimeAgo, formatKHR } from '@nong-official-dev/core'
+  import { useI18n } from 'vue-i18n'
   import echo from '@/utils/echo'
+
+  const { t } = useI18n()
 
   // ─────────────────────────────────────────────
   // STORES
@@ -14,7 +17,6 @@
   // ─────────────────────────────────────────────
   // STATE
   // ─────────────────────────────────────────────
-  const connected = ref(false)
   const newOrderIds = ref(new Set())
   const filterType = ref('all')
   const sortNewest = ref(true)
@@ -22,16 +24,16 @@
   // ─────────────────────────────────────────────
   // STATIC CONFIG
   // ─────────────────────────────────────────────
-  const filterTabs = [
-    { key: 'all', label: 'All', icon: 'mdi-view-grid' },
-    { key: 'table', label: 'Dine-in', icon: 'mdi-table-furniture' },
-    { key: 'takeaway', label: 'Takeaway', icon: 'mdi-moped' }
-  ]
+  const filterTabs = computed(() => [
+    { key: 'all', label: t('cashier.all'), icon: 'mdi-view-grid' },
+    { key: 'table', label: t('order_type.dine_in'), icon: 'mdi-table-furniture' },
+    { key: 'takeaway', label: t('order_type.takeaway'), icon: 'mdi-moped' }
+  ])
 
   // ─────────────────────────────────────────────
   // COMPUTED
   // ─────────────────────────────────────────────
-  const orders = computed(() => orderStore.orders.data || [])
+  const orders = computed(() => orderStore.orders || [])
   const selectedBill = computed(() => posStore.selectedBill)
 
   const filteredOrders = computed(() => {
@@ -68,23 +70,14 @@
 
   // ─────────────────────────────────────────────
   // LIFECYCLE
+  // Data fetching + the shared order subscription are owned by Layout.vue
+  // (it persists for the whole session); this view only adds its own
+  // presentation-only new-order flash listener.
   // ─────────────────────────────────────────────
-  onMounted(async () => {
-    await orderStore.fetchAllOrders()
-    orderStore.subscribeToOrders()
-
+  onMounted(() => {
     echo
       .channel('orders')
       .listen('.order.created', e => markNewOrder(e.order_id))
-
-    const connection = echo.connector.pusher.connection
-
-    connection.bind('connected', () => (connected.value = true))
-    connection.bind('disconnected', () => (connected.value = false))
-  })
-
-  onUnmounted(() => {
-    orderStore.unsubscribeFromOrders()
   })
 </script>
 
@@ -92,61 +85,40 @@
   <v-container fluid class="pa-4">
     <!-- ─── STICKY HEADER ───────────────────────────────────────────── -->
     <div class="sticky-header">
-      <!-- Title row -->
-      <div class="d-flex align-center justify-space-between mb-3">
-        <div class="d-flex align-center gap-2">
-    
-          <div>
-            <div class="text-subtitle-1 font-weight-black text-slate-800 lh-1">
-              Unpaid Orders
-            </div>
-          </div>
+      <!-- Filters row -->
+      <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-3">
+        <div class="d-flex gap-3">
+          <v-btn
+            v-for="tab in filterTabs"
+            :key="tab.key"
+            :color="filterType === tab.key ? 'primary' : undefined"
+            :variant="filterType === tab.key ? 'flat' : 'tonal'"
+            size="small"
+            rounded="lg"
+            class="text-none tap-44 px-4"
+            :prepend-icon="tab.icon"
+            @click="filterType = tab.key"
+          >
+            {{ tab.label }}
+          </v-btn>
         </div>
 
-        <div class="d-flex align-center gap-2">
+        <div class="d-flex align-center gap-3">
           <div class="text-caption text-grey">
-            {{ orders.length }} active orders
-          </div>
-          <!-- Filter Tabs -->
-          <div class="d-flex gap-2">
-            <v-btn
-              v-for="tab in filterTabs"
-              :key="tab.key"
-              :color="filterType === tab.key ? 'primary' : undefined"
-              :variant="filterType === tab.key ? 'flat' : 'tonal'"
-              size="x-small"
-              rounded="lg"
-              class="text-none"
-              :prepend-icon="tab.icon"
-              @click="filterType = tab.key"
-            >
-              {{ tab.label }}
-            </v-btn>
+            {{ filteredOrders.length }} {{ t('cashier.active_orders') }}
           </div>
           <v-btn
             variant="tonal"
-            size="x-small"
+            size="small"
             rounded="lg"
-            class="text-none"
+            class="text-none tap-44 px-4"
             :prepend-icon="
               sortNewest ? 'mdi-sort-descending' : 'mdi-sort-ascending'
             "
             @click="sortNewest = !sortNewest"
           >
-            {{ sortNewest ? 'Newest' : 'Oldest' }}
+            {{ sortNewest ? t('cashier.sort_newest') : t('cashier.sort_oldest') }}
           </v-btn>
-
-          <v-chip
-            :color="connected ? 'success' : 'error'"
-            variant="tonal"
-            size="x-small"
-            class="font-weight-bold"
-          >
-            <template #prepend>
-              <v-icon size="8" class="mr-1">mdi-circle</v-icon>
-            </template>
-            {{ connected ? 'Live' : 'Reconnecting…' }}
-          </v-chip>
         </div>
       </div>
     </div>
@@ -158,16 +130,34 @@
       </v-col>
     </v-row>
 
-    <!-- ─── EMPTY STATE ───────────────────────────────────────── -->
+    <!-- ─── EMPTY STATE — no orders at all ─────────────────────── -->
     <div
-      v-else-if="filteredOrders.length === 0"
+      v-else-if="orders.length === 0"
       class="d-flex flex-column align-center justify-center pa-16 text-grey"
     >
       <v-icon size="64" class="mb-4" color="grey-lighten-2">
         mdi-receipt-text-outline
       </v-icon>
-      <div class="text-subtitle-1 font-weight-bold mb-1">No active orders</div>
-      <div class="text-caption">New orders will appear here automatically</div>
+      <div class="text-subtitle-1 font-weight-bold mb-1">
+        {{ t('cashier.no_orders') }}
+      </div>
+      <div class="text-caption">{{ t('cashier.no_orders_sub') }}</div>
+    </div>
+
+    <!-- ─── EMPTY STATE — filter matches nothing ───────────────── -->
+    <div
+      v-else-if="filteredOrders.length === 0"
+      class="d-flex flex-column align-center justify-center pa-16 text-grey"
+    >
+      <v-icon size="64" class="mb-4" color="grey-lighten-2">
+        mdi-filter-off-outline
+      </v-icon>
+      <div class="text-subtitle-1 font-weight-bold mb-1">
+        {{ t('cashier.no_matches') }}
+      </div>
+      <v-btn variant="tonal" size="small" class="mt-2" @click="filterType = 'all'">
+        {{ t('cashier.all') }}
+      </v-btn>
     </div>
 
     <!-- ─── ORDERS GRID ───────────────────────────────────────── -->
@@ -190,10 +180,6 @@
           border
           @click="selectBill(bill)"
         >
-          <div
-            :class="['type-stripe', bill.table ? 'bg-primary' : 'bg-orange']"
-          />
-
           <v-chip
             v-if="newOrderIds.has(bill.order_id)"
             class="new-badge"
@@ -201,7 +187,7 @@
             size="x-small"
             label
           >
-            NEW
+            {{ t('cashier.new_badge') }}
           </v-chip>
 
           <v-card-text class="pa-4">
@@ -210,7 +196,7 @@
                 <div
                   class="text-overline font-weight-black text-grey-darken-1 lh-1"
                 >
-                  ORDER #{{ bill.order_id }}
+                  {{ t('cashier.order_label') }} #{{ bill.order_id }}
                 </div>
                 <div class="d-flex align-center text-caption text-grey mt-1">
                   <v-icon size="12" class="me-1">mdi-clock-outline</v-icon>
@@ -225,21 +211,23 @@
             </div>
 
             <div class="text-h5 font-weight-black mb-2">
-              {{ bill.table ? 'Table ' + bill.table : 'Takeaway' }}
+              {{ bill.table ? `${t('label.table')} ${bill.table}` : t('order_type.takeaway') }}
             </div>
 
             <div
               class="d-flex align-center text-caption text-grey-darken-1 mb-3"
             >
               <v-icon size="13" class="me-1">mdi-package-variant</v-icon>
-              {{ bill.items.length || 0 }} items
+              {{ bill.items.length || 0 }} {{ t('order.items') }}
             </div>
 
             <v-divider class="mb-3" style="border-style: dashed" />
 
             <div class="d-flex justify-space-between align-center">
               <div>
-                <div class="text-caption text-grey mb-0">Total</div>
+                <div class="text-caption text-grey mb-0">
+                  {{ t('label.total') }}
+                </div>
                 <div class="text-h5 font-weight-black text-primary">
                   {{ formatKHR(bill.total_amount) }}
                 </div>
@@ -267,26 +255,6 @@
     background: rgba(248, 250, 252, 0.9) !important;
     backdrop-filter: blur(8px);
     margin-bottom: 10px;
-  }
-
-  .stats-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .stat-chip {
-    display: flex;
-    align-items: center;
-    background: #f8f7f6;
-    border: 1px solid #ede9e6;
-    border-radius: 8px;
-    padding: 4px 10px;
-  }
-
-  .type-stripe {
-    height: 4px;
-    border-radius: 12px 12px 0 0;
   }
 
   .order-card {
