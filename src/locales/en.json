@@ -30,7 +30,10 @@
     "send_order_later": "Send Order — Pay Later",
     "retry": "Retry",
     "enable": "Enable",
-    "exit": "Exit"
+    "exit": "Exit",
+    "leave": "Leave",
+    "stay": "Stay",
+    "print_bill_pay": "Print Bill & Pay"
   },
 
   "label": {
@@ -152,7 +155,8 @@
     "confirm_clear_cart": "Clear all items from this order?",
     "confirm_clear_bill": "Clear this bill and go back to unpaid orders?",
     "confirm_open_reserved_table": "This table is reserved. Open it anyway?",
-    "confirm_mark_served": "Mark this order as served?"
+    "confirm_mark_served": "Mark this order as served?",
+    "confirm_leave_menu": "Leave this order? Items you've added will be cleared."
   },
 
   "error": {
@@ -270,7 +274,6 @@
   },
 
   "cashier": {
-    "title": "Unpaid Orders",
     "active_orders": "active orders",
     "all": "All",
     "sort_newest": "Newest",
@@ -279,6 +282,7 @@
     "no_orders_sub": "New orders will appear here automatically",
     "no_matches": "No orders match this filter",
     "new_badge": "NEW",
-    "order_label": "ORDER"
+    "order_label": "ORDER",
+    "no_active_table_hint": "Choose an active table to view items"
   }
 }

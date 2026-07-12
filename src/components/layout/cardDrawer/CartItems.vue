@@ -30,7 +30,7 @@
       {{
         isMenuPage
           ? t('order.empty_sub')
-          : 'Choose an active table to view items'
+          : t('cashier.no_active_table_hint')
       }}
     </p>
   </div>

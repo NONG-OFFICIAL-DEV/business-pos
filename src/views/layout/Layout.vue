@@ -1,6 +1,6 @@
 <script setup>
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRouter, useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useAppUtils } from '@nong-official-dev/core'
   import { usePosStore } from '@/stores/posStore'
@@ -23,6 +23,7 @@
   const { t } = useI18n()
   const { notif } = useAppUtils()
   const router = useRouter()
+  const route = useRoute()
   const { connected } = useConnectionStatus()
 
   // ── Stores ─────────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@
   const settingsDialog = ref(false)
 
   // ── Cart ───────────────────────────────────────────────────────────────────
-  const activeItems = computed(() => posStore.activeItems)
+  const activeItems = computed(() => posStore.cart)
   const total = computed(() => posStore.total)
 
   // ── Order payload builder ──────────────────────────────────────────────────
@@ -177,13 +178,7 @@
     notif(t('notification.orderPlaced'), { type: 'success', timeout: 2000 })
   }
 
-  // ── Bill & Auth ────────────────────────────────────────────────────────────
-  async function handlePrintBill() {
-    const res = await orderStore.printBillForPayment(posStore.orderId)
-    if (res.status === 200) window.open(res.data.invoice_url, '_blank')
-    await Promise.all([orderStore.fetchAllOrders(), posStore.clearBill()])
-  }
-
+  // ── Auth ───────────────────────────────────────────────────────────────────
   async function handleLogout() {
     await authStore.logout()
     notif(t('messages.logoutSuccess'), { type: 'success', color: 'primary' })
@@ -222,7 +217,10 @@
 
   <SidebarMenu :order-count="orderStore.orders.length" />
 
-  <PosCartDrawer @checkout="handleCheckout" @print-bill="handlePrintBill" />
+  <PosCartDrawer
+    v-if="route.meta.showDrawer !== 4"
+    @checkout="handleCheckout"
+  />
 
   <v-main>
     <v-container class="pa-0" fluid>

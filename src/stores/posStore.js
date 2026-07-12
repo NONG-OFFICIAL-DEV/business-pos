@@ -11,7 +11,6 @@ export const usePosStore = defineStore('pos', () => {
   const cart = ref([])
   const paymentMethod = ref('cash')
   const paymentTiming = ref('now') // 'now' | 'later'
-  const orderId = ref(null)
   const discountType = ref('fixed') // 'percentage' | 'fixed'
   const discountValue = ref(0)
   const { t } = useI18n()
@@ -24,19 +23,12 @@ export const usePosStore = defineStore('pos', () => {
 
   const selectedTable = ref(null)
 
-  const selectedBill = ref([])
-  const isPrintBill = ref(false)
-
   /** -------------------
    * COMPUTED
    * ------------------- */
 
-  const activeItems = computed(() =>
-    isPrintBill.value ? selectedBill.value.items : cart.value
-  )
-
   const subtotal = computed(() =>
-    activeItems.value.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
+    cart.value.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
   )
 
   // Recomputed from type/value so it stays correct as the cart changes
@@ -81,22 +73,8 @@ export const usePosStore = defineStore('pos', () => {
     selectedTable.value = null
     clearCart()
   }
-  function selectBill(bill) {
-    isPrintBill.value = true
-    selectedBill.value = bill
-
-    selectedTable.value = null
-    clearCart()
-  }
-  function clearBill() {
-    selectedBill.value = null
-    isPrintBill.value = false
-  }
 
   function addToCart(item) {
-    isPrintBill.value = false
-    selectedBill.value = []
-
     const cartKey = `${item.id}_${JSON.stringify(item.customizations || {})}`
 
     const existing = cart.value.find(i => i.cartKey === cartKey)
@@ -137,16 +115,12 @@ export const usePosStore = defineStore('pos', () => {
     cart,
     paymentMethod,
     paymentTiming,
-    orderId,
     discountType,
     discountValue,
     paymentMethods,
     selectedTable,
-    selectedBill,
-    isPrintBill,
 
     /** computed */
-    activeItems,
     subtotal,
     total,
     discount,
@@ -156,13 +130,11 @@ export const usePosStore = defineStore('pos', () => {
     clearDiscount,
     selectTable,
     clearTable,
-    selectBill,
     addToCart,
     updateQty,
     removeFromCart,
     clearCart,
     setPaymentMethod,
-    setPaymentTiming,
-    clearBill
+    setPaymentTiming
   }
 })

@@ -2,30 +2,21 @@
   import { computed } from 'vue'
   import { formatKHR } from '@nong-official-dev/core'
   import { usePosStore } from '@/stores/posStore'
-  import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  // 1. Added 'open-discount' to emits
-  const emit = defineEmits([
-    'select-payment',
-    'checkout',
-    'print-bill',
-    'open-discount'
-  ])
+  const emit = defineEmits(['select-payment', 'checkout', 'open-discount'])
 
   defineProps({
     subtotal: Number,
     total: Number,
-    discount: { type: Number, default: 0 }, // 2. Added discount prop
+    discount: { type: Number, default: 0 },
     paymentMethod: String,
     paymentMethods: Array,
     disabled: Boolean
   })
 
   const posStore = usePosStore()
-  const route = useRoute()
-  const isUnpaidOrderPage = computed(() => route.meta.showDrawer === 4)
 
   const paymentTiming = computed({
     get: () => posStore.paymentTiming,
@@ -33,23 +24,15 @@
   })
   const isPayLater = computed(() => paymentTiming.value === 'later')
 
-  const handleClick = () => {
-    if (posStore.isPrintBill) {
-      emit('print-bill')
-    } else {
-      emit('checkout')
-    }
-  }
+  const handleClick = () => emit('checkout')
 
   const buttonLabel = computed(() => {
-    if (isUnpaidOrderPage.value) return 'PRINT BILL & PAY'
     if (isPayLater.value) return t('btn.send_order_later')
     if (posStore.selectedTable) return t('btn.place_order')
     return t('btn.confirm')
   })
 
   const buttonIcon = computed(() => {
-    if (isUnpaidOrderPage.value) return 'mdi-printer-check'
     if (isPayLater.value) return 'mdi-clock-outline'
     if (posStore.selectedTable) return 'mdi-silverware-fork-knife'
     return 'mdi-credit-card-check'
@@ -96,7 +79,6 @@
     </div>
 
     <v-btn-toggle
-      v-if="!isUnpaidOrderPage"
       v-model="paymentTiming"
       mandatory
       color="brown-darken-3"
@@ -114,7 +96,7 @@
       </v-btn>
     </v-btn-toggle>
 
-    <div v-if="!isUnpaidOrderPage && !isPayLater" class="mb-4">
+    <div v-if="!isPayLater" class="mb-4">
       <div
         class="text-caption font-weight-bold text-brown-lighten-2 mb-2 uppercase-label"
       >

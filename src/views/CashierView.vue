@@ -1,10 +1,10 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
-  import { usePosStore } from '@/stores/posStore'
   import { formatTimeAgo, formatKHR } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import echo from '@/utils/echo'
+  import UnpaidOrderDialog from '@/components/cashier/UnpaidOrderDialog.vue'
 
   const { t } = useI18n()
 
@@ -12,11 +12,13 @@
   // STORES
   // ─────────────────────────────────────────────
   const orderStore = useOrderStore()
-  const posStore = usePosStore()
 
   // ─────────────────────────────────────────────
   // STATE
+  // Selected bill is local to this view (not global store state) — leaving
+  // this page always resets it, no manual cleanup elsewhere needed.
   // ─────────────────────────────────────────────
+  const selectedBill = ref(null)
   const newOrderIds = ref(new Set())
   const filterType = ref('all')
   const sortNewest = ref(true)
@@ -34,7 +36,6 @@
   // COMPUTED
   // ─────────────────────────────────────────────
   const orders = computed(() => orderStore.orders || [])
-  const selectedBill = computed(() => posStore.selectedBill)
 
   const filteredOrders = computed(() => {
     let list = [...orders.value]
@@ -54,8 +55,19 @@
   // HELPERS
   // ─────────────────────────────────────────────
   const selectBill = bill => {
-    posStore.selectBill(bill)
-    posStore.orderId = bill.order_id
+    selectedBill.value = bill
+  }
+
+  const closeBill = () => {
+    selectedBill.value = null
+  }
+
+  const handlePrintBill = async () => {
+    if (!selectedBill.value) return
+    const res = await orderStore.printBillForPayment(selectedBill.value.order_id)
+    if (res.status === 200) window.open(res.data.invoice_url, '_blank')
+    await orderStore.fetchAllOrders()
+    selectedBill.value = null
   }
 
   const markNewOrder = id => {
@@ -194,9 +206,9 @@
             <div class="d-flex justify-space-between align-start mb-1">
               <div>
                 <div
-                  class="text-overline font-weight-black text-grey-darken-1 lh-1"
+                  class="font-weight-black text-grey-darken-1 lh-1"
                 >
-                  {{ t('cashier.order_label') }} #{{ bill.order_id }}
+                  {{ t('cashier.order_label') }} #{{ bill.order_number }}
                 </div>
                 <div class="d-flex align-center text-caption text-grey mt-1">
                   <v-icon size="12" class="me-1">mdi-clock-outline</v-icon>
@@ -244,6 +256,12 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <UnpaidOrderDialog
+      :bill="selectedBill"
+      @close="closeBill"
+      @print-bill="handlePrintBill"
+    />
   </v-container>
 </template>
 

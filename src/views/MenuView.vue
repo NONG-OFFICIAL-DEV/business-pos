@@ -9,7 +9,7 @@
   import { useI18n } from 'vue-i18n'
   import { formatKHR, useAppUtils } from '@nong-official-dev/core'
 
-  const { notif } = useAppUtils()
+  const { notif, confirm } = useAppUtils()
   const { t } = useI18n()
 
   const authStore = useAuthStore()
@@ -76,8 +76,25 @@
 
   // Leaving Menu (Tables, Kitchen, Orders…) drops the in-progress cart —
   // staff start fresh next time rather than finding stale items still picked.
+  // Only worth confirming if there's actually something to lose.
   onBeforeRouteLeave(() => {
-    posStore.clearCart()
+    if (!posStore.cart.length) return true
+
+    return new Promise(resolve => {
+      confirm({
+        title: t('dialog.confirm_leave_menu'),
+        options: {
+          type: 'warning',
+          agreeBtnText: t('btn.leave'),
+          denyBtnText: t('btn.stay')
+        },
+        agree: () => {
+          posStore.clearCart()
+          resolve(true)
+        },
+        cancel: () => resolve(false)
+      })
+    })
   })
 </script>
 

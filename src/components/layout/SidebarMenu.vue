@@ -1,6 +1,5 @@
 <template>
   <v-navigation-drawer :width="90" permanent>
-    <!-- ── Main nav tiles ── -->
     <v-list nav class="pa-2 d-flex flex-column gap-2">
       <v-card
         v-for="item in menuItems"
@@ -34,55 +33,56 @@
 <script setup>
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/auth'
 
+  const { t } = useI18n()
   const authStore = useAuthStore()
   const route = useRoute()
 
-  const props = defineProps({
-    orderCount: { type: Number, default: 0 },
-    user: Object
+  defineProps({
+    orderCount: { type: Number, default: 0 }
   })
 
   function isActive(item) {
     return route.path === item.to
   }
 
-  const MENU_ITEMS = [
+  const MENU_ITEMS = computed(() => [
     {
-      tooltip: 'Tables',
+      tooltip: t('nav.tables'),
       icon: 'mdi-table-chair',
       value: 'Dining Table',
       to: '/pos/tables',
       premium: false
     },
     {
-      tooltip: 'Menu',
+      tooltip: t('nav.menu'),
       icon: 'mdi-book-open-outline',
       value: 'Menu List',
       to: '/pos/menu',
       premium: false
     },
     {
-      tooltip: 'Kitchen',
+      tooltip: t('nav.kitchen'),
       icon: 'mdi-silverware-fork-knife',
       value: 'Kitchen Display',
       to: '/pos/kds',
       premium: true
     },
     {
-      tooltip: 'Orders',
+      tooltip: t('nav.orders'),
       icon: 'mdi-cash-register',
       value: 'Cashier',
       to: '/pos/cashier',
       premium: false
     }
-  ]
+  ])
 
   const isPremium = computed(() => authStore.plan === 'premium')
 
   const menuItems = computed(() =>
-    MENU_ITEMS.filter(item => !item.premium || isPremium.value)
+    MENU_ITEMS.value.filter(item => !item.premium || isPremium.value)
   )
 </script>
 
@@ -90,6 +90,7 @@
   .nav-tile {
     width: 70px;
     height: 70px;
+    overflow: visible !important;
     transition: background-color 0.2s;
   }
 

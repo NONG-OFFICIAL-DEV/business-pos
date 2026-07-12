@@ -1,8 +1,8 @@
 import http from './api'
 
 export default {
-  getAllOrder() {
-    return http.get('/v1/orders')
+  getAllOrder(params) {
+    return http.get('/v1/orders', { params })
   },
   createOrder(payload,loading) {
     return http.post('/v1/coffee/pos/orders', payload, {

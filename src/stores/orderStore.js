@@ -22,14 +22,32 @@ export const useOrderStore = defineStore('order', {
       return data
     },
 
+    // Orders is a live working queue (items are added/removed in real time
+    // via the websocket subscription below), not a browsable archive — so
+    // every page is fetched up front rather than exposing "page 2" and
+    // risking an unpaid order going unnoticed off-screen.
     async fetchAllOrders() {
       this.loading = true
       try {
-        const res = await orderService.getAllOrder()
-        const payload = res.data.data
-        // Normalize: API may return a plain array or a paginated
-        // { data: [...], meta, links } wrapper depending on the endpoint.
-        this.orders = Array.isArray(payload) ? payload : (payload?.data ?? [])
+        const first = await orderService.getAllOrder()
+        const payload = first.data.data
+
+        // API may return a plain array or a paginated { data, meta, links }
+        // wrapper depending on the endpoint.
+        if (Array.isArray(payload)) {
+          this.orders = payload
+          return
+        }
+
+        let all = payload?.data ?? []
+        const lastPage = payload?.meta?.last_page ?? 1
+
+        for (let page = 2; page <= lastPage; page++) {
+          const res = await orderService.getAllOrder({ page })
+          all = all.concat(res.data.data?.data ?? [])
+        }
+
+        this.orders = all
       } finally {
         this.loading = false
       }

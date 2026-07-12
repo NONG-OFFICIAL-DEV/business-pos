@@ -1,32 +1,17 @@
 <script setup>
-  import { formatTimeAgo } from '@nong-official-dev/core'
-  import { computed } from 'vue'
-  import { useRoute } from 'vue-router'
-
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  const route = useRoute()
-
-  const isUnpaidOrderPage = computed(() => route.meta.showDrawer === 4)
-
-  const props = defineProps({
-    isHospitality: Boolean,
+  defineProps({
     table: Object,
-    count: { type: Number, default: 0 },
-    itemInformations: { type: Object, default: null }
+    count: { type: Number, default: 0 }
   })
 
-  defineEmits(['clear', 'clearBill'])
-
-  // ✅ Check order_no exists — guards against empty object {}
-  const hasBill = computed(() => !!props.itemInformations?.order_number)
+  defineEmits(['clear'])
 </script>
 
 <template>
-  <!-- MODE A — CURRENT ORDER -->
   <div
-    v-if="!isUnpaidOrderPage"
     class="cart-header px-4 py-3 border-b d-flex align-center justify-space-between"
   >
     <div>
@@ -54,69 +39,6 @@
       @click="$emit('clear')"
     />
   </div>
-
-  <!-- MODE B — UNPAID BILL VIEW -->
-  <template v-else>
-    <!-- ✅ Bill selected and has real data -->
-    <div v-if="hasBill" class="pa-4 bg-white border-b">
-      <div class="d-flex align-center justify-space-between mb-3">
-        <div class="text-subtitle-2 font-weight-black">
-          {{
-            isHospitality
-              ? `#${itemInformations.order_number}`
-              : 'Current Order'
-          }}
-        </div>
-
-        <v-btn
-          variant="tonal"
-          color="error"
-          size="small"
-          rounded="lg"
-          icon="mdi-delete-sweep"
-          @click="$emit('clearBill')"
-        ></v-btn>
-      </div>
-
-      <div class="d-flex flex-wrap" style="gap: 6px">
-        <v-chip
-          size="small"
-          variant="flat"
-          color="grey-lighten-4"
-          class="font-weight-bold"
-        >
-          <v-icon start icon="mdi-pound" size="14" />
-          T-{{ itemInformations.dining_table?.table_number }}
-        </v-chip>
-        <v-chip
-          size="small"
-          variant="flat"
-          color="grey-lighten-4"
-          class="font-weight-bold"
-        >
-          <v-icon start icon="mdi-clock-outline" size="14" />
-          {{ formatTimeAgo(itemInformations.created_at) }}
-        </v-chip>
-        <v-chip
-          size="small"
-          variant="flat"
-          color="grey-lighten-4"
-          class="font-weight-bold"
-        >
-          <v-icon start icon="mdi-package-variant-closed" size="14" />
-          {{ count }} {{ t('order.item') }}
-        </v-chip>
-      </div>
-    </div>
-
-    <!-- ✅ No bill selected -->
-    <div v-else class="pa-4 border-b">
-      <div class="text-subtitle-2 font-weight-black mb-1">UNPAID ORDERS</div>
-      <div class="text-caption text-medium-emphasis">
-        Select an order from the list to view details
-      </div>
-    </div>
-  </template>
 </template>
 
 <style scoped>
