@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import orderService from '@/api/order'
 import echo from '@/utils/echo'
+import { useAuthStore } from '@/stores/auth'
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
@@ -29,7 +30,10 @@ export const useOrderStore = defineStore('order', {
     async fetchAllOrders() {
       this.loading = true
       try {
-        const first = await orderService.getAllOrder()
+        const authStore = useAuthStore()
+        const branchId = authStore.branch_id
+
+        const first = await orderService.getAllOrder({ branch_id: branchId })
         const payload = first.data.data
 
         // API may return a plain array or a paginated { data, meta, links }
@@ -43,7 +47,7 @@ export const useOrderStore = defineStore('order', {
         const lastPage = payload?.meta?.last_page ?? 1
 
         for (let page = 2; page <= lastPage; page++) {
-          const res = await orderService.getAllOrder({ page })
+          const res = await orderService.getAllOrder({ branch_id: branchId, page })
           all = all.concat(res.data.data?.data ?? [])
         }
 
